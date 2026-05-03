@@ -28,12 +28,12 @@ export const getTaskStatus = (task) => {
 export const getStatusColor = (status) => {
   switch (status) {
     case "Completed":
-      return { bg: "#dcfce7", text: "#16a34a", label: "✅ Completed" };
+      return { bg: "rgba(5,150,105,0.12)", text: "#059669", label: "✅ Completed" };
     case "Delayed":
-      return { bg: "#fee2e2", text: "#dc2626", label: "🔴 Delayed" };
+      return { bg: "rgba(102,20,20,0.1)", text: "#661414", label: "🔴 Delayed" };
     case "In Progress":
     default:
-      return { bg: "#dbeafe", text: "#0284c7", label: "🟢 In Progress" };
+      return { bg: "rgba(102,20,20,0.08)", text: "#661414", label: "🟢 In Progress" };
   }
 };
 
@@ -43,10 +43,10 @@ export const getStatusColor = (status) => {
 export const getTypeColor = (type) => {
   switch (type?.toLowerCase()) {
     case "bug":
-      return { bg: "#fecaca", text: "#991b1b", label: "🐛 Bug" };
+      return { bg: "rgba(102,20,20,0.12)", text: "#661414", label: "🐛 Bug" };
     case "task":
     default:
-      return { bg: "#bfdbfe", text: "#1e40af", label: "📋 Task" };
+      return { bg: "rgba(102,20,20,0.07)", text: "#661414", label: "📋 Task" };
   }
 };
 

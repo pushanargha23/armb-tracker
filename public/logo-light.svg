@@ -1,0 +1,5 @@
+<svg width="120" height="120" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+  <rect width="120" height="120" rx="24" fill="#FFFFFF" />
+  <text x="50%" y="55%" dominant-baseline="middle" text-anchor="middle" font-family="-apple-system, 'San Francisco', 'SF Pro Display', 'SF Pro Text', BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif" font-size="36" font-weight="800" fill="#661414">ARMB</text>
+  <text x="50%" y="82%" dominant-baseline="middle" text-anchor="middle" font-family="-apple-system, 'San Francisco', 'SF Pro Display', 'SF Pro Text', BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif" font-size="16" fill="#661414">Tracker</text>
+</svg>

@@ -6,6 +6,7 @@ import {
 import { db } from "../firebase/config";
 import { useAuth } from "../context/AuthContext";
 import Navbar from "../components/Navbar";
+import { useTheme } from "../context/ThemeContext";
 import { useLiveTimer } from "../hooks/useLiveTimer";
 import ReportCharts from "../components/ReportCharts";
 import CreateTaskModal from "../components/CreateTaskModal";
@@ -20,98 +21,98 @@ import { getTodaySummary } from "../utils/timeTrackingUtils";
 
 /* ─── Theme Palettes ─── */
 const DARK = {
-  bg:             "#080b12",
-  bgCard:         "#0d1117",
-  bgCardAlt:      "rgba(255,255,255,0.02)",
-  bgInput:        "rgba(255,255,255,0.04)",
-  bgTableHead:    "rgba(255,255,255,0.02)",
-  bgUserStats:    "rgba(255,255,255,0.03)",
-  bgTimerCard:    "rgba(167,139,250,0.05)",
-  bgStatsSummary: "rgba(255,255,255,0.02)",
-  border:         "rgba(255,255,255,0.06)",
-  borderMid:      "rgba(255,255,255,0.10)",
-  violet:         "#a78bfa",
-  violetDim:      "rgba(167,139,250,0.15)",
-  violetBorder:   "rgba(167,139,250,0.25)",
-  text:           "#f1f5f9",
-  textMid:        "#0a53bb",
-  textDim:        "#475569",
-  green:          "#0c7552",
+  bg:             "#000000",
+  bgCard:         "rgba(255,241,158,0.04)",
+  bgCardAlt:      "rgba(255,241,158,0.02)",
+  bgInput:        "rgba(255,241,158,0.05)",
+  bgTableHead:    "rgba(255,241,158,0.02)",
+  bgUserStats:    "rgba(255,241,158,0.03)",
+  bgTimerCard:    "rgba(255,241,158,0.05)",
+  bgStatsSummary: "rgba(255,241,158,0.03)",
+  border:         "rgba(255,241,158,0.1)",
+  borderMid:      "rgba(255,241,158,0.18)",
+  violet:         "#FFF19E",
+  violetDim:      "rgba(255,241,158,0.1)",
+  violetBorder:   "rgba(255,241,158,0.22)",
+  text:           "#FFF19E",
+  textMid:        "rgba(255,241,158,0.75)",
+  textDim:        "rgba(255,241,158,0.35)",
+  green:          "#10b981",
   greenDim:       "rgba(16,185,129,0.12)",
   greenText:      "#6ee7b7",
   greenBorder:    "rgba(16,185,129,0.25)",
   red:            "#ef4444",
-  amber:          "#f59e0b",
-  shadow:         "0 2px 12px rgba(0,0,0,0.35)",
-  shadowCard:     "0 4px 24px rgba(0,0,0,0.3)",
+  amber:          "#FFF19E",
+  shadow:         "0 2px 12px rgba(0,0,0,0.6)",
+  shadowCard:     "0 4px 24px rgba(0,0,0,0.5)",
   shadowBtn:      "0 4px 20px rgba(239,68,68,0.3)",
-  confirmBg:      "#0d1117",
+  confirmBg:      "rgba(255,241,158,0.04)",
   confirmBorder:  "rgba(239,68,68,0.25)",
-  navInactiveTxt: "#475569",
+  navInactiveTxt: "rgba(255,241,158,0.4)",
   workingBg:      "rgba(16,185,129,0.15)",
   workingColor:   "#6ee7b7",
-  idleBg:         "rgba(71,85,105,0.3)",
-  idleColor:      "#94a3b8",
-  taskRowBg:      "rgba(255,255,255,0.01)",
+  idleBg:         "rgba(255,241,158,0.08)",
+  idleColor:      "rgba(255,241,158,0.4)",
+  taskRowBg:      "rgba(255,241,158,0.01)",
   successBg:      "rgba(16,185,129,0.1)",
   successBorder:  "rgba(16,185,129,0.25)",
   successText:    "#6ee7b7",
-  liveChipBg:     "rgba(16,185,129,0.08)",
-  liveChipBorder: "rgba(16,185,129,0.2)",
-  liveChipText:   "#6ee7b7",
-  overlayBg:      "rgba(4,6,12,0.85)",
+  liveChipBg:     "rgba(255,241,158,0.06)",
+  liveChipBorder: "rgba(255,241,158,0.2)",
+  liveChipText:   "#FFF19E",
+  overlayBg:      "rgba(0,0,0,0.88)",
 };
 
 const LIGHT = {
-  bg:             "#f0f2f8",
-  bgCard:         "#ffffff",
-  bgCardAlt:      "rgba(0,0,0,0.02)",
-  bgInput:        "#f5f6fa",
-  bgTableHead:    "#f8f9fc",
-  bgUserStats:    "#f5f6fa",
-  bgTimerCard:    "rgba(109,40,217,0.04)",
-  bgStatsSummary: "#f5f6fa",
-  border:         "rgba(0,0,0,0.08)",
-  borderMid:      "rgba(0,0,0,0.13)",
-  violet:         "#6d28d9",
-  violetDim:      "rgba(109,40,217,0.07)",
-  violetBorder:   "rgba(109,40,217,0.18)",
-  text:           "#0f172a",
-  textMid:        "#334155",
-  textDim:        "#94a3b8",
+  bg:             "#FFFFFF",
+  bgCard:         "rgba(255,255,255,0.75)",
+  bgCardAlt:      "rgba(102,20,20,0.02)",
+  bgInput:        "rgba(102,20,20,0.04)",
+  bgTableHead:    "rgba(102,20,20,0.03)",
+  bgUserStats:    "rgba(102,20,20,0.03)",
+  bgTimerCard:    "rgba(102,20,20,0.04)",
+  bgStatsSummary: "rgba(102,20,20,0.03)",
+  border:         "rgba(102,20,20,0.1)",
+  borderMid:      "rgba(102,20,20,0.18)",
+  violet:         "#661414",
+  violetDim:      "rgba(102,20,20,0.07)",
+  violetBorder:   "rgba(102,20,20,0.18)",
+  text:           "#000000",
+  textMid:        "#661414",
+  textDim:        "rgba(102,20,20,0.45)",
   green:          "#059669",
   greenDim:       "rgba(5,150,105,0.08)",
   greenText:      "#065f46",
   greenBorder:    "rgba(5,150,105,0.2)",
-  red:            "#dc2626",
-  amber:          "#b45309",
-  shadow:         "0 2px 10px rgba(0,0,0,0.06)",
-  shadowCard:     "0 4px 20px rgba(0,0,0,0.06)",
+  red:            "#661414",
+  amber:          "#661414",
+  shadow:         "0 2px 10px rgba(102,20,20,0.08)",
+  shadowCard:     "0 4px 20px rgba(102,20,20,0.08)",
   shadowBtn:      "0 4px 16px rgba(220,38,38,0.2)",
-  confirmBg:      "#ffffff",
-  confirmBorder:  "rgba(220,38,38,0.2)",
-  navInactiveTxt: "#64748b",
+  confirmBg:      "rgba(255,255,255,0.75)",
+  confirmBorder:  "rgba(102,20,20,0.2)",
+  navInactiveTxt: "rgba(102,20,20,0.5)",
   workingBg:      "rgba(5,150,105,0.1)",
   workingColor:   "#065f46",
-  idleBg:         "rgba(100,116,139,0.1)",
-  idleColor:      "#64748b",
-  taskRowBg:      "#fafbff",
+  idleBg:         "rgba(102,20,20,0.06)",
+  idleColor:      "rgba(102,20,20,0.5)",
+  taskRowBg:      "rgba(102,20,20,0.01)",
   successBg:      "rgba(5,150,105,0.07)",
   successBorder:  "rgba(5,150,105,0.2)",
   successText:    "#065f46",
   liveChipBg:     "rgba(5,150,105,0.07)",
   liveChipBorder: "rgba(5,150,105,0.18)",
   liveChipText:   "#065f46",
-  overlayBg:      "rgba(15,23,42,0.55)",
+  overlayBg:      "rgba(0,0,0,0.5)",
 };
 
 function LiveTimer({ startTime, violet }) {
   const t = useLiveTimer(startTime);
-  return <span style={{ color: violet, fontWeight: 700, fontFamily: "'JetBrains Mono', monospace" }}>{t}</span>;
+  return <span style={{ color: violet, fontWeight: 700, fontFamily: "'SF Mono', SFMono-Regular, ui-monospace, monospace" }}>{t}</span>;
 }
 
 export default function AdminDashboard() {
-  const [isDark, setIsDark] = useState(false);
+  const { isDark, toggle: toggleDark } = useTheme();
   const [users, setUsers] = useState([]);
   const [tasks, setTasks] = useState([]);
   const [timeLogs, setTimeLogs] = useState([]);
@@ -195,7 +196,6 @@ export default function AdminDashboard() {
   return (
     <div style={S.root}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap');
         * { box-sizing: border-box; }
         ::placeholder { color: ${C.textDim}; }
         select option { background: ${C.bgCard}; color: ${C.text}; }
@@ -246,17 +246,17 @@ export default function AdminDashboard() {
             <button
               className="theme-toggle"
               style={S.themeToggle}
-              onClick={() => setIsDark(d => !d)}
+              onClick={toggleDark}
               title="Toggle theme"
             >
               <span style={{ fontSize: 14 }}>{isDark ? "☀" : "☽"}</span>
               <span>{isDark ? "Light Mode" : "Dark Mode"}</span>
             </button>
             <button style={S.sidebarActionBtn} onClick={() => setShowModal(true)}>
-              <span>＋</span> New Task
+              <span>📋</span> New Task
             </button>
             <button style={{ ...S.sidebarActionBtn, ...S.sidebarActionBtnAlt }} onClick={() => setShowBulkUpload(true)}>
-              <span>⊞</span> Bulk Upload
+              <span>📤</span> Bulk Upload
             </button>
           </div>
         </aside>
@@ -445,7 +445,7 @@ export default function AdminDashboard() {
                     <div key={idx} style={S.timeCard}>
                       <div style={S.timeAvatar}>{item.userName?.[0]?.toUpperCase()}</div>
                       <div style={{ fontSize: 13, fontWeight: 700, color: C.text, marginBottom: 6 }}>{item.userName}</div>
-                      <div style={{ fontSize: 22, fontWeight: 800, color: C.violet, fontFamily: "'JetBrains Mono', monospace", marginBottom: 4 }}>{item.formattedTime}</div>
+                      <div style={{ fontSize: 22, fontWeight: 800, color: C.violet, fontFamily: "'SF Mono', SFMono-Regular, ui-monospace, monospace", marginBottom: 4 }}>{item.formattedTime}</div>
                       <div style={{ fontSize: 10, color: C.textDim, fontWeight: 600, letterSpacing: 1, textTransform: "uppercase" }}>Today</div>
                     </div>
                   ))}
@@ -484,7 +484,7 @@ export default function AdminDashboard() {
                   return (
                     <div key={u.id} style={S.userCard} className="user-card">
                       <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                        <div style={{ ...S.userAvatar, background: isWorking ? "linear-gradient(135deg,#10b981,#059669)" : "linear-gradient(135deg,#6366f1,#8b5cf6)" }}>
+                        <div style={{ ...S.userAvatar, background: isWorking ? "linear-gradient(135deg,#10b981,#059669)" : isDark ? "linear-gradient(135deg,#FFF19E,#e8d800)" : "linear-gradient(135deg,#661414,#991b1b)", color: isWorking ? "#fff" : isDark ? "#000" : "#fff" }}>
                           {u.name?.[0]?.toUpperCase()}
                         </div>
                         <div style={{ flex: 1, minWidth: 0 }}>
@@ -504,7 +504,7 @@ export default function AdminDashboard() {
                         ].map((stat, i, arr) => (
                           <div key={stat.label} style={{ display: "flex", alignItems: "center", flex: 1 }}>
                             <div style={{ flex: 1, textAlign: "center" }}>
-                              <span style={{ display: "block", fontSize: 22, fontWeight: 800, color: stat.color, fontFamily: "'JetBrains Mono', monospace" }}>{stat.val}</span>
+                              <span style={{ display: "block", fontSize: 22, fontWeight: 800, color: stat.color, fontFamily: "'SF Mono', SFMono-Regular, ui-monospace, monospace" }}>{stat.val}</span>
                               <span style={{ display: "block", fontSize: 9, color: C.textDim, fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.8, marginTop: 3 }}>{stat.label}</span>
                             </div>
                             {i < arr.length - 1 && <div style={{ width: 1, height: 30, background: C.border }} />}
@@ -577,11 +577,13 @@ export default function AdminDashboard() {
 
 /* ─── Styles factory — called with active theme palette ─── */
 function makeStyles(C) {
+  const SF = "-apple-system, 'SF Pro Display', 'SF Pro Text', BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif";
+  const isDark = C.bg === "#000000";
   return {
     root: {
       minHeight: "100vh",
       background: C.bg,
-      fontFamily: "'Syne', sans-serif",
+      fontFamily: SF,
       color: C.text,
       transition: "background 0.3s, color 0.3s",
     },
@@ -590,6 +592,7 @@ function makeStyles(C) {
     sidebar: {
       width: 220, minWidth: 220,
       background: C.bgCard,
+      backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)",
       borderRight: `1px solid ${C.border}`,
       display: "flex", flexDirection: "column",
       padding: "24px 0",
@@ -606,9 +609,9 @@ function makeStyles(C) {
     },
     brandMark: {
       width: 36, height: 36, borderRadius: 10,
-      background: "linear-gradient(135deg,#7c3aed,#6366f1)",
+      background: isDark ? "linear-gradient(135deg,#FFF19E,#e8d800)" : "linear-gradient(135deg,#661414,#991b1b)",
       display: "flex", alignItems: "center", justifyContent: "center",
-      fontSize: 18, fontWeight: 800, color: "#fff", flexShrink: 0,
+      fontSize: 18, fontWeight: 800, color: isDark ? "#000" : "#fff", flexShrink: 0,
     },
     brandTitle: { fontSize: 14, fontWeight: 700, color: C.text, lineHeight: 1.2 },
     brandSub: { fontSize: 10, color: C.textDim, fontWeight: 500, letterSpacing: 1.5, textTransform: "uppercase" },
@@ -620,7 +623,7 @@ function makeStyles(C) {
       borderRadius: 8, color: C.navInactiveTxt,
       fontSize: 13, fontWeight: 600, cursor: "pointer",
       textAlign: "left", position: "relative",
-      fontFamily: "'Syne', sans-serif", letterSpacing: 0.3,
+      fontFamily: SF, letterSpacing: 0.3,
       transition: "all 0.2s",
     },
     navBtnActive: {
@@ -648,21 +651,22 @@ function makeStyles(C) {
       border: `1px solid ${C.border}`,
       borderRadius: 8, color: C.textMid,
       fontSize: 12, fontWeight: 700, cursor: "pointer",
-      fontFamily: "'Syne', sans-serif",
+      fontFamily: SF,
       transition: "all 0.2s",
     },
     sidebarActionBtn: {
       display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
       padding: "10px 12px",
-      background: "linear-gradient(135deg,#7c3aed,#6366f1)",
+      background: C.violet,
       border: "none", borderRadius: 8,
-      color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer",
-      fontFamily: "'Syne', sans-serif",
+      color: isDark ? "#000000" : "#FFFFFF",
+      fontSize: 13, fontWeight: 700, cursor: "pointer",
+      fontFamily: SF, boxShadow: `0 4px 14px ${C.violet}40`,
     },
     sidebarActionBtnAlt: {
       background: C.violetDim,
       border: `1px solid ${C.violetBorder}`,
-      color: C.violet,
+      color: C.violet, boxShadow: "none",
     },
 
     main: { flex: 1, padding: "28px 32px", overflowX: "hidden", minWidth: 0 },
@@ -688,7 +692,9 @@ function makeStyles(C) {
 
     statsGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 16, marginBottom: 24 },
     statCard: {
-      background: C.bgCard, border: `1px solid ${C.border}`,
+      background: C.bgCard,
+      backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)",
+      border: `1px solid ${C.border}`,
       borderRadius: 14, padding: "20px",
       boxShadow: C.shadow, cursor: "default",
     },
@@ -697,14 +703,16 @@ function makeStyles(C) {
       display: "flex", alignItems: "center", justifyContent: "center",
       fontSize: 14, fontWeight: 700, background: "transparent",
     },
-    statValue: { fontSize: 34, fontWeight: 800, lineHeight: 1, fontFamily: "'JetBrains Mono', monospace" },
+    statValue: { fontSize: 34, fontWeight: 800, lineHeight: 1, fontFamily: "'SF Mono', SFMono-Regular, ui-monospace, monospace" },
     statLabel: { fontSize: 12, fontWeight: 700, color: C.textMid, marginTop: 12, letterSpacing: 0.5, textTransform: "uppercase" },
     statSub: { fontSize: 11, color: C.textDim, marginTop: 3 },
     statBar: { height: 3, borderRadius: 2, marginTop: 14, overflow: "hidden" },
     statBarFill: { height: "100%", borderRadius: 2, transition: "width 0.6s ease" },
 
     card: {
-      background: C.bgCard, border: `1px solid ${C.border}`,
+      background: C.bgCard,
+      backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)",
+      border: `1px solid ${C.border}`,
       borderRadius: 16, padding: "24px",
       boxShadow: C.shadowCard,
       transition: "background 0.3s, border-color 0.3s",
@@ -770,20 +778,20 @@ function makeStyles(C) {
       padding: "7px 14px", background: C.violetDim,
       border: `1px solid ${C.violetBorder}`, borderRadius: 7,
       color: C.violet, fontWeight: 700, fontSize: 12, cursor: "pointer",
-      fontFamily: "'Syne', sans-serif", transition: "all 0.2s",
+      fontFamily: SF, transition: "all 0.2s",
     },
     doneBtn: {
       padding: "7px 14px", background: C.greenDim,
       border: `1px solid ${C.greenBorder}`, borderRadius: 7,
       color: C.greenText, fontWeight: 700, fontSize: 12, cursor: "pointer",
-      fontFamily: "'Syne', sans-serif", transition: "all 0.2s",
+      fontFamily: SF, transition: "all 0.2s",
     },
     reactivateBtn: {
       padding: "7px 14px",
       background: "rgba(180,83,9,0.1)", border: "1px solid rgba(180,83,9,0.25)",
       borderRadius: 7, color: C.amber,
       fontWeight: 700, fontSize: 12, cursor: "pointer",
-      fontFamily: "'Syne', sans-serif", transition: "all 0.2s",
+      fontFamily: SF, transition: "all 0.2s",
     },
 
     searchWrap: { position: "relative", display: "flex", alignItems: "center" },
@@ -791,7 +799,7 @@ function makeStyles(C) {
       padding: "8px 32px 8px 30px",
       background: C.bgInput, border: `1px solid ${C.border}`,
       borderRadius: 8, fontSize: 12, width: 220,
-      color: C.text, fontFamily: "'Syne', sans-serif",
+      color: C.text, fontFamily: SF,
       transition: "border-color 0.2s", outline: "none",
     },
     clearBtn: {
@@ -803,7 +811,7 @@ function makeStyles(C) {
       padding: "8px 10px", background: C.bgInput,
       border: `1px solid ${C.border}`, borderRadius: 8,
       fontSize: 12, cursor: "pointer",
-      color: C.textMid, fontFamily: "'Syne', sans-serif", outline: "none",
+      color: C.textMid, fontFamily: SF, outline: "none",
     },
 
     timeGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px,1fr))", gap: 12, marginBottom: 20 },
@@ -813,14 +821,16 @@ function makeStyles(C) {
     },
     timeAvatar: {
       width: 40, height: 40, borderRadius: 10,
-      background: "linear-gradient(135deg,#7c3aed,#6366f1)",
+      background: isDark ? "linear-gradient(135deg,#FFF19E,#e8d800)" : "linear-gradient(135deg,#661414,#991b1b)",
       display: "flex", alignItems: "center", justifyContent: "center",
-      fontSize: 18, fontWeight: 800, color: "#fff", margin: "0 auto 12px",
+      fontSize: 18, fontWeight: 800, color: isDark ? "#000" : "#fff", margin: "0 auto 12px",
     },
 
     userGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(290px,1fr))", gap: 14 },
     userCard: {
-      background: C.bgCardAlt, border: `1px solid ${C.border}`,
+      background: C.bgCard,
+      backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)",
+      border: `1px solid ${C.border}`,
       borderRadius: 14, padding: 18,
       display: "flex", flexDirection: "column", gap: 14, cursor: "default",
     },
@@ -834,21 +844,24 @@ function makeStyles(C) {
       fontSize: 10, fontWeight: 800, whiteSpace: "nowrap", flexShrink: 0,
       letterSpacing: 0.8, textTransform: "uppercase", border: "1px solid",
     },
-    roleBadgeAdmin: { background: "rgba(99,102,241,0.12)", color: "#818cf8", borderColor: "rgba(99,102,241,0.3)" },
+    roleBadgeAdmin: { background: C.violetDim, color: C.violet, borderColor: C.violetBorder },
     roleBadgeUser:  { background: C.greenDim, color: C.greenText, borderColor: C.greenBorder },
     editUserBtn: {
       flex: 1, padding: "9px 0",
-      background: C.violetDim, border: `1px solid ${C.violetBorder}`,
+      background: C.violetDim,
+      border: `1px solid ${C.violetBorder}`,
       borderRadius: 8, color: C.violet,
       fontWeight: 700, fontSize: 12, cursor: "pointer",
-      fontFamily: "'Syne', sans-serif", transition: "all 0.2s",
+      fontFamily: SF, transition: "all 0.2s",
     },
     deleteUserBtn: {
       flex: 1, padding: "9px 0",
-      background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)",
-      borderRadius: 8, color: "#f87171",
+      background: isDark ? "rgba(239,68,68,0.1)" : "rgba(102,20,20,0.06)",
+      border: isDark ? "1px solid rgba(239,68,68,0.25)" : "1px solid rgba(102,20,20,0.2)",
+      borderRadius: 8,
+      color: isDark ? "#f87171" : "#661414",
       fontWeight: 700, fontSize: 12, cursor: "pointer",
-      fontFamily: "'Syne', sans-serif", transition: "all 0.2s",
+      fontFamily: SF, transition: "all 0.2s",
     },
 
     overlay: {
@@ -857,24 +870,26 @@ function makeStyles(C) {
       display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000,
     },
     confirmModal: {
-      background: C.confirmBg, border: `1px solid ${C.confirmBorder}`,
+      background: C.confirmBg,
+      backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)",
+      border: `1px solid ${C.confirmBorder}`,
       borderRadius: 20, padding: "40px 36px",
       width: 360, textAlign: "center",
-      boxShadow: "0 32px 80px rgba(0,0,0,0.25)",
+      boxShadow: "0 32px 80px rgba(0,0,0,0.35)",
     },
     cancelBtn: {
       flex: 1, padding: "12px 0",
       background: C.bgCardAlt, border: `1px solid ${C.border}`,
       borderRadius: 10, color: C.textMid,
       fontWeight: 700, fontSize: 14, cursor: "pointer",
-      fontFamily: "'Syne', sans-serif",
+      fontFamily: SF,
     },
     deleteBtn: {
       flex: 1, padding: "12px 0",
-      background: "linear-gradient(135deg,#ef4444,#dc2626)",
+      background: "linear-gradient(135deg,#661414,#991b1b)",
       border: "none", borderRadius: 10,
       color: "#fff", fontWeight: 800, fontSize: 14, cursor: "pointer",
-      fontFamily: "'Syne', sans-serif", boxShadow: C.shadowBtn,
+      fontFamily: SF, boxShadow: "0 4px 16px rgba(102,20,20,0.4)",
     },
   };
 }
