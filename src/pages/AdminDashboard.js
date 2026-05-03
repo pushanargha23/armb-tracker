@@ -389,13 +389,19 @@ export default function AdminDashboard() {
                     const statusColor = getStatusColor(status);
                     const typeColor = getTypeColor(t.type);
                     return (
-                      <div key={t.id} style={S.taskRow} className="task-row">
+                      <div key={t.id} style={{ ...S.taskRow, ...(status === "Delayed" ? { borderColor: "rgba(239,68,68,0.35)", background: "rgba(239,68,68,0.04)" } : {}) }} className="task-row">
                         <div style={{ ...S.taskAccent, background: statusColor.text }} />
                         <div style={{ flex: 1 }}>
+                          {status === "Delayed" && (
+                            <div style={S.delayedBanner}>
+                              <span style={S.delayedDot} />
+                              <span>⚠️ DELAYED — Deadline passed on {formatDeadline(t.deadline)}</span>
+                            </div>
+                          )}
                           <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap", marginBottom: 6 }}>
-                            <h4 style={{ margin: 0, fontSize: 14, fontWeight: 700, color: C.text }}>{t.title}</h4>
+                            <h4 style={{ margin: 0, fontSize: 14, fontWeight: 700, color: status === "Delayed" ? "#f87171" : C.text }}>{t.title}</h4>
                             <span style={{ ...S.tag, background: typeColor.bg + "22", color: typeColor.text, borderColor: typeColor.text + "44" }}>{typeColor.label}</span>
-                            <span style={{ ...S.tag, background: statusColor.bg + "22", color: statusColor.text, borderColor: statusColor.text + "44" }}>{statusColor.label}</span>
+                            <span style={{ ...S.tag, background: statusColor.bg + "22", color: statusColor.text, borderColor: statusColor.text + "44", fontWeight: 800 }}>{statusColor.label}</span>
                             {t.category && <span style={{ ...S.tag, background: C.violetDim, color: C.violet, borderColor: C.violetBorder }}>{t.category}</span>}
                           </div>
                           <p style={{ margin: "0 0 10px", fontSize: 12, color: C.textDim, lineHeight: 1.5 }}>{t.description || "No description provided"}</p>
@@ -742,10 +748,24 @@ function makeStyles(C) {
       display: "flex", gap: 16, padding: "16px",
       borderRadius: 10, border: `1px solid ${C.border}`,
       background: C.taskRowBg, alignItems: "flex-start",
-      transition: "background 0.15s", cursor: "default",
+      transition: "background 0.15s, border-color 0.2s", cursor: "default",
     },
     taskAccent: { width: 3, minWidth: 3, borderRadius: 2, alignSelf: "stretch", marginTop: 2 },
     tag: { padding: "3px 8px", borderRadius: 5, fontSize: 11, fontWeight: 700, border: "1px solid", letterSpacing: 0.3 },
+    delayedBanner: {
+      display: "flex", alignItems: "center", gap: 8,
+      background: "linear-gradient(135deg, #ef4444, #dc2626)",
+      color: "#fff", borderRadius: 7, padding: "7px 12px",
+      fontSize: 11, fontWeight: 800, letterSpacing: 0.5,
+      marginBottom: 10, textTransform: "uppercase",
+      boxShadow: "0 2px 10px rgba(239,68,68,0.35)",
+    },
+    delayedDot: {
+      width: 7, height: 7, borderRadius: "50%",
+      background: "#fff", flexShrink: 0,
+      boxShadow: "0 0 6px rgba(255,255,255,0.9)",
+      animation: "pulseDot 1s infinite",
+    },
     editBtn: {
       padding: "7px 14px", background: C.violetDim,
       border: `1px solid ${C.violetBorder}`, borderRadius: 7,

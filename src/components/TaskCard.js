@@ -84,13 +84,29 @@ function TaskCard({ task, userId }) {
   const typeColor = getTypeColor(task.type);
 
   const accentColor = task.completed ? "#10b981" : isRunning ? "#6366f1" : overdue ? "#ef4444" : "#e2e8f0";
+  const isDelayed = status === "Delayed";
 
   return (
     <>
       {showConfirm && <ConfirmModal taskTitle={task.title} onConfirm={() => { handleComplete(); setShowConfirm(false); }} onCancel={() => setShowConfirm(false)} />}
-      <div style={{ ...s.card, borderLeft: `4px solid ${accentColor}`, opacity: task.completed ? 0.75 : 1 }}>
+      <div style={{
+        ...s.card,
+        borderLeft: `4px solid ${accentColor}`,
+        opacity: task.completed ? 0.75 : 1,
+        background: isDelayed ? "#fff8f8" : "#fff",
+        border: isDelayed ? "1.5px solid #fecaca" : "1px solid #e8eaf6",
+      }}>
+
+      {/* Delayed banner — full width, very visible */}
+      {isDelayed && (
+        <div style={s.delayedBanner}>
+          <span style={s.delayedPulse} />
+          <span>⚠ DELAYED — Deadline passed on {formatDeadline(task.deadline)}</span>
+        </div>
+      )}
+
       {/* Running indicator strip */}
-      {isRunning && (
+      {isRunning && !isDelayed && (
         <div style={s.runningStrip}>
           <span style={s.runningDot} />
           <span style={s.runningText}>In Progress</span>
@@ -99,10 +115,11 @@ function TaskCard({ task, userId }) {
 
       {/* Header */}
       <div style={s.cardHead}>
-        <h3 style={s.title}>{task.title}</h3>
+        <h3 style={{ ...s.title, color: isDelayed ? "#991b1b" : "#1e293b" }}>{task.title}</h3>
         <div style={s.badges}>
           <span style={{ ...s.badge, background: typeColor.bg, color: typeColor.text }}>{typeColor.label}</span>
           {task.category && <span style={{ ...s.badge, background: "#ede9fe", color: "#7c3aed" }}>{task.category}</span>}
+          <span style={{ ...s.badge, background: statusColor.bg, color: statusColor.text, fontWeight: 800 }}>{statusColor.label}</span>
         </div>
       </div>
 
@@ -110,11 +127,9 @@ function TaskCard({ task, userId }) {
 
       {/* Footer meta */}
       <div style={s.meta}>
-        <span style={{ ...s.metaItem, color: overdue && !task.completed ? "#ef4444" : "#d80a0a", fontWeight: 700}}>
-          📅 Deadline : {formatDeadline(task.deadline)}
+        <span style={{ ...s.metaItem, color: isDelayed ? "#ef4444" : "#94a3b8", fontWeight: isDelayed ? 700 : 500 }}>
+          📅 {formatDeadline(task.deadline)}
         </span>
-        {overdue && !task.completed && <span style={s.overduePill}>Overdue</span>}
-        <span style={{ ...s.statusPill, background: statusColor.bg, color: statusColor.text }}>{statusColor.label}</span>
       </div>
 
       {/* Live Timer */}
@@ -212,6 +227,19 @@ const s = {
   metaItem: { fontSize: 12, fontWeight: 500 },
   overduePill: { fontSize: 10, fontWeight: 700, background: "#fee2e2", color: "#ef4444", padding: "2px 8px", borderRadius: 6 },
   statusPill: { fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 6, marginLeft: "auto" },
+  delayedBanner: {
+    display: "flex", alignItems: "center", gap: 8,
+    background: "linear-gradient(135deg, #ef4444, #dc2626)",
+    color: "#fff", borderRadius: 8, padding: "8px 12px",
+    fontSize: 11, fontWeight: 800, letterSpacing: 0.4,
+    marginBottom: 12, textTransform: "uppercase",
+    boxShadow: "0 2px 8px rgba(239,68,68,0.35)",
+  },
+  delayedPulse: {
+    width: 8, height: 8, borderRadius: "50%", background: "#fff",
+    flexShrink: 0, animation: "pulseDot 1s infinite",
+    boxShadow: "0 0 6px rgba(255,255,255,0.8)",
+  },
 
   timerRow: {
     display: "flex", alignItems: "center", justifyContent: "space-between",
