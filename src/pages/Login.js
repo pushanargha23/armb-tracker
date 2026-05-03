@@ -45,7 +45,7 @@ export default function Login() {
   return (
     <div style={styles.container}>
       <div style={styles.card}>
-        <div style={styles.logo}>⏱</div>
+        <img src="/logo.png" alt="ARMB" style={styles.logo} />
         <h1 style={styles.title}>ARMB Task Tracker</h1>
         <p style={styles.subtitle}>Track employee tasks and time in real-time</p>
         <button style={{ ...styles.btn, opacity: loading ? 0.7 : 1 }} onClick={handleLogin} disabled={loading}>
@@ -75,7 +75,7 @@ const styles = {
     maxWidth: 400,
     width: "90%",
   },
-  logo: { fontSize: 48, marginBottom: 16 },
+  logo: { width: 80, height: 80, objectFit: "contain", marginBottom: 16 },
   title: { margin: "0 0 8px", fontSize: 28, fontWeight: 700, color: "#1a1a2e" },
   subtitle: { color: "#666", marginBottom: 32, fontSize: 15 },
   btn: {
