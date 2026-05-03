@@ -60,6 +60,19 @@ function TaskCard({ task, userId }) {
     await updateDoc(doc(db, "users", userId), { status: "idle" });
   };
 
+  const handleComplete = async () => {
+    // Stop active log if running
+    if (activeLog) {
+      const start = activeLog.startTime.toDate();
+      const dur = Math.floor((Date.now() - start.getTime()) / 1000);
+      await updateDoc(doc(db, "timeLogs", activeLog.id), {
+        endTime: serverTimestamp(), duration: dur, status: "idle"
+      });
+      await updateDoc(doc(db, "users", userId), { status: "idle" });
+    }
+    await updateDoc(doc(db, "tasks", task.id), { completed: true, status: "Completed" });
+  };
+
   const isRunning = !!activeLog;
   const status = getTaskStatus(task);
   const statusColor = getStatusColor(status);
@@ -99,10 +112,15 @@ function TaskCard({ task, userId }) {
       <div style={styles.actions}>
         {task.completed ? (
           <div style={styles.completedMsg}>✅ Task Completed</div>
-        ) : !isRunning ? (
-          <button style={styles.startBtn} onClick={handleStart}>▶ Start</button>
         ) : (
-          <button style={styles.stopBtn} onClick={handleStop}>■ Stop</button>
+          <>
+            {!isRunning ? (
+              <button style={styles.startBtn} onClick={handleStart}>▶ Start</button>
+            ) : (
+              <button style={styles.stopBtn} onClick={handleStop}>■ Stop</button>
+            )}
+            <button style={styles.completeBtn} onClick={handleComplete}>✔ Task Completed</button>
+          </>
         )}
       </div>
     </div>
@@ -155,5 +173,9 @@ const styles = {
   completedMsg: {
     flex: 1, padding: "10px 0", background: "#dcfce7", color: "#16a34a",
     border: "none", borderRadius: 8, fontWeight: 600, fontSize: 14, textAlign: "center",
+  },
+  completeBtn: {
+    flex: 1, padding: "10px 0", background: "#1a1a2e", color: "#fff",
+    border: "none", borderRadius: 8, fontWeight: 600, cursor: "pointer", fontSize: 14,
   },
 };

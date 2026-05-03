@@ -9,6 +9,7 @@ import Navbar from "../components/Navbar";
 import { useLiveTimer } from "../hooks/useLiveTimer";
 import ReportCharts from "../components/ReportCharts";
 import CreateTaskModal from "../components/CreateTaskModal";
+import EditTaskModal from "../components/EditTaskModal";
 import BulkUploadModal from "../components/BulkUploadModal";
 import OrganizedLogsList from "../components/OrganizedLogsList";
 import { format } from "date-fns";
@@ -31,6 +32,8 @@ export default function AdminDashboard() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [successMessage, setSuccessMessage] = useState("");
+  const [editingTask, setEditingTask] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     const u1 = onSnapshot(collection(db, "users"), s => setUsers(s.docs.map(d => ({ id: d.id, ...d.data() }))));
@@ -57,11 +60,21 @@ export default function AdminDashboard() {
     await updateDoc(doc(db, "tasks", taskId), { completed: true, status: "Completed" });
   };
 
+  const handleReactivate = async (taskId) => {
+    await updateDoc(doc(db, "tasks", taskId), { completed: false, status: "In Progress" });
+  };
+
   const filteredTasks = tasks.filter(task => {
     if (typeFilter !== "all" && task.type !== typeFilter) return false;
     if (categoryFilter !== "all" && task.category !== categoryFilter) return false;
     const status = getTaskStatus(task);
     if (statusFilter !== "all" && status !== statusFilter) return false;
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      const titleMatch = task.title?.toLowerCase().includes(q);
+      const userMatch = getUserName(task.assignedTo).toLowerCase().includes(q);
+      if (!titleMatch && !userMatch) return false;
+    }
     return true;
   });
 
@@ -142,9 +155,21 @@ export default function AdminDashboard() {
         {/* Tasks Tab */}
         {activeTab === "tasks" && (
           <div style={styles.card}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-              <h3 style={styles.cardTitle}>📋 All Tasks</h3>
-              <div style={{ display: "flex", gap: 12 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16, flexWrap: "wrap", gap: 12 }}>
+              <h3 style={{ ...styles.cardTitle, margin: 0 }}>📋 All Tasks</h3>
+              <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
+                <div style={styles.searchWrapper}>
+                  <span style={styles.searchIcon}>🔍</span>
+                  <input
+                    style={styles.searchInput}
+                    placeholder="Search by title or user..."
+                    value={searchQuery}
+                    onChange={e => setSearchQuery(e.target.value)}
+                  />
+                  {searchQuery && (
+                    <button style={styles.clearBtn} onClick={() => setSearchQuery("")}>✕</button>
+                  )}
+                </div>
                 <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)} style={styles.filterSelect}>
                   <option value="all">All Categories</option>
                   <option value="Frontend">🖥️ Frontend</option>
@@ -191,15 +216,14 @@ export default function AdminDashboard() {
                             {t.createdAt && <span>📆 Created: {format(t.createdAt.toDate?.() || new Date(), "MMM d")}</span>}
                           </div>
                         </div>
-                        {!t.completed && (
-                          <button
-                            onClick={() => handleMarkCompleted(t.id)}
-                            style={styles.completeBtn}
-                            title="Mark as completed"
-                          >
-                            ✓ Mark Done
-                          </button>
-                        )}
+                        <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
+                          <button onClick={() => setEditingTask(t)} style={styles.editBtn} title="Edit task">✏️ Edit</button>
+                          {!t.completed ? (
+                            <button onClick={() => handleMarkCompleted(t.id)} style={styles.completeBtn} title="Mark as completed">✓ Done</button>
+                          ) : (
+                            <button onClick={() => handleReactivate(t.id)} style={styles.reactivateBtn} title="Reactivate task">↩ Reactivate</button>
+                          )}
+                        </div>
                       </div>
                     </div>
                   );
@@ -256,7 +280,9 @@ export default function AdminDashboard() {
         {/* Reports Tab */}
         {activeTab === "reports" && <ReportCharts timeLogs={timeLogs} users={users} tasks={tasks} />}
 
-        {showModal && <CreateTaskModal users={users} onClose={() => setShowModal(false)} />}
+        {showModal && <CreateTaskModal users={users} onClose={() => setShowModal(false)} />
+        }
+        {editingTask && <EditTaskModal task={editingTask} users={users} onClose={() => setEditingTask(null)} />}
         {showBulkUpload && (
           <BulkUploadModal
             users={users}
@@ -283,6 +309,10 @@ const styles = {
   activeTab: { background: "#667eea", color: "#fff" },
   newTaskBtn: { padding: "8px 20px", background: "#1a1a2e", color: "#fff", border: "none", borderRadius: 8, cursor: "pointer", fontWeight: 600, fontSize: 14 },
   filterSelect: { padding: "8px 12px", border: "1px solid #ddd", borderRadius: 8, fontSize: 13, cursor: "pointer", background: "#fff" },
+  searchWrapper: { position: "relative", display: "flex", alignItems: "center" },
+  searchIcon: { position: "absolute", left: 10, fontSize: 13, pointerEvents: "none" },
+  searchInput: { padding: "8px 32px 8px 30px", border: "1px solid #ddd", borderRadius: 8, fontSize: 13, width: 220, outline: "none", background: "#fff" },
+  clearBtn: { position: "absolute", right: 8, background: "none", border: "none", cursor: "pointer", color: "#999", fontSize: 13, padding: 0, lineHeight: 1 },
   card: { background: "#fff", borderRadius: 12, padding: 24, boxShadow: "0 2px 8px rgba(0,0,0,0.06)" },
   cardTitle: { margin: "0 0 16px", fontSize: 18, fontWeight: 600, color: "#1a1a2e" },
   table: { width: "100%", borderCollapse: "collapse" },
@@ -294,6 +324,8 @@ const styles = {
   taskItem: { background: "#f9fafb", borderRadius: 8, padding: 16, border: "1px solid #e5e7eb", backgroundColor: "#fafbff" },
   typeBadge: { padding: "4px 10px", borderRadius: 6, fontSize: 12, fontWeight: 600 },
   completeBtn: { padding: "8px 14px", background: "#22c55e", color: "#fff", border: "none", borderRadius: 6, fontWeight: 600, cursor: "pointer", fontSize: 12, whiteSpace: "nowrap" },
+  editBtn: { padding: "8px 14px", background: "#667eea", color: "#fff", border: "none", borderRadius: 6, fontWeight: 600, cursor: "pointer", fontSize: 12, whiteSpace: "nowrap" },
+  reactivateBtn: { padding: "8px 14px", background: "#f59e0b", color: "#fff", border: "none", borderRadius: 6, fontWeight: 600, cursor: "pointer", fontSize: 12, whiteSpace: "nowrap" },
   summaryGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: 12 },
   summaryCard: { background: "#f8f9ff", borderRadius: 8, padding: 16, border: "1px solid #e0e7ff", textAlign: "center" },
 };
