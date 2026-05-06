@@ -64,27 +64,27 @@ export default function EditUserModal({ user, onClose }) {
 
 function makeStyles(isDark) {
   const modalBg    = isDark ? "rgba(0,0,0,0.95)"           : "rgba(255,255,255,0.97)";
-  const border     = isDark ? "rgba(255,241,158,0.18)"      : "rgba(102,20,20,0.15)";
+  const border     = isDark ? "rgba(255,241,158,0.35)"      : "rgba(102,20,20,0.28)";
   const shadow     = isDark ? "0 24px 60px rgba(0,0,0,0.7)": "0 24px 60px rgba(102,20,20,0.15)";
   const titleColor = isDark ? "#FFF19E"                     : "#000000";
   const subColor   = isDark ? "rgba(255,241,158,0.4)"       : "rgba(102,20,20,0.5)";
   const labelColor = isDark ? "#FFF19E"                     : "#661414";
   const inputBg    = isDark ? "rgba(255,241,158,0.05)"      : "rgba(102,20,20,0.03)";
-  const inputBdr   = isDark ? "rgba(255,241,158,0.18)"      : "rgba(102,20,20,0.18)";
+  const inputBdr   = isDark ? "rgba(255,241,158,0.35)"      : "rgba(102,20,20,0.3)";
   const inputColor = isDark ? "#FFF19E"                     : "#000000";
   const hintColor  = isDark ? "rgba(255,241,158,0.35)"      : "rgba(102,20,20,0.4)";
   const closeBg    = isDark ? "rgba(255,241,158,0.08)"      : "rgba(102,20,20,0.06)";
-  const closeBdr   = isDark ? "rgba(255,241,158,0.2)"       : "rgba(102,20,20,0.15)";
+  const closeBdr   = isDark ? "rgba(255,241,158,0.35)"      : "rgba(102,20,20,0.28)";
   const avatarBg   = isDark ? "linear-gradient(135deg,#FFF19E,#e8d800)" : "linear-gradient(135deg,#661414,#991b1b)";
   const avatarTx   = isDark ? "#000000"                     : "#FFFFFF";
   const cancelBg   = isDark ? "rgba(255,241,158,0.06)"      : "rgba(102,20,20,0.05)";
-  const cancelBdr  = isDark ? "rgba(255,241,158,0.18)"      : "rgba(102,20,20,0.15)";
+  const cancelBdr  = isDark ? "rgba(255,241,158,0.35)"      : "rgba(102,20,20,0.28)";
   const cancelTx   = isDark ? "#FFF19E"                     : "#661414";
   const saveBg     = isDark ? "linear-gradient(135deg,#FFF19E,#e8d800)" : "linear-gradient(135deg,#661414,#991b1b)";
   const saveTx     = isDark ? "#000000"                     : "#FFFFFF";
   const saveShadow = isDark ? "0 4px 14px rgba(255,241,158,0.25)" : "0 4px 14px rgba(102,20,20,0.35)";
   const errBg      = isDark ? "rgba(239,68,68,0.1)"         : "rgba(102,20,20,0.06)";
-  const errBdr     = isDark ? "rgba(239,68,68,0.3)"         : "rgba(102,20,20,0.25)";
+  const errBdr     = isDark ? "rgba(239,68,68,0.4)"         : "rgba(102,20,20,0.3)";
   const errTx      = isDark ? "#fca5a5"                     : "#661414";
 
   return {

@@ -23,8 +23,8 @@ service cloud.firestore {
       allow update: if request.auth != null && (
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
         (
-          resource.data.assignedTo == request.auth.uid &&
-          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['completed', 'status'])
+          (request.auth.uid in resource.data.assignedTo) &&
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['completed', 'status', 'accepted'])
         )
       );
     }
@@ -37,6 +37,12 @@ service cloud.firestore {
         resource.data.userId == request.auth.uid ||
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'
       );
+    }
+    // Settings: readable by all authenticated users, writable by admin only
+    match /settings/{docId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
   }
 }

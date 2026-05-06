@@ -7,7 +7,12 @@ const SF = "-apple-system, 'SF Pro Display', 'SF Pro Text', BlinkMacSystemFont, 
 export default function EditTaskModal({ task, users, onClose }) {
   const [title, setTitle] = useState(task.title);
   const [desc, setDesc] = useState(task.description || "");
-  const [assignedTo, setAssignedTo] = useState(task.assignedTo);
+  const [assignedTo, setAssignedTo] = useState(
+    Array.isArray(task.assignedTo) ? task.assignedTo : task.assignedTo ? [task.assignedTo] : []
+  );
+
+  const toggleUser = (uid) =>
+    setAssignedTo(prev => prev.includes(uid) ? prev.filter(id => id !== uid) : [...prev, uid]);
   const [deadline, setDeadline] = useState(task.deadline || "");
   const [type, setType] = useState(task.type || "Task");
   const [category, setCategory] = useState(task.category || "Frontend");
@@ -17,7 +22,7 @@ export default function EditTaskModal({ task, users, onClose }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!title.trim()) return setError("Task title is required");
-    if (!assignedTo) return setError("Please assign the task to a user");
+    if (!assignedTo.length) return setError("Please assign the task to at least one user");
     if (!deadline) return setError("Please set a deadline");
     setSaving(true);
     try {
@@ -69,13 +74,20 @@ export default function EditTaskModal({ task, users, onClose }) {
           <label style={s.label}>Deadline *</label>
           <input style={s.input} type="date" value={deadline} onChange={e => setDeadline(e.target.value)} required />
 
-          <label style={s.label}>Assign To *</label>
-          <select style={s.input} value={assignedTo} onChange={e => setAssignedTo(e.target.value)} required>
-            <option value="">Select user...</option>
+          <label style={s.label}>Assign To * {assignedTo.length > 0 && `(${assignedTo.length} selected)`}</label>
+          <div style={{ ...s.input, height: "auto", padding: 8, display: "flex", flexDirection: "column", gap: 6, maxHeight: 160, overflowY: "auto" }}>
             {users.filter(u => u.role !== "admin").sort((a, b) => a.name.localeCompare(b.name)).map(u => (
-              <option key={u.id} value={u.id}>{u.name} ({u.email})</option>
+              <label key={u.id} style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", fontSize: 13, color: "#000" }}>
+                <input
+                  type="checkbox"
+                  checked={assignedTo.includes(u.id)}
+                  onChange={() => toggleUser(u.id)}
+                  style={{ accentColor: "#661414", width: 15, height: 15 }}
+                />
+                {u.name} <span style={{ opacity: 0.5, fontSize: 11 }}>({u.email})</span>
+              </label>
             ))}
-          </select>
+          </div>
 
           <div style={s.actions}>
             <button type="button" style={s.cancelBtn} onClick={onClose}>✕ Cancel</button>
@@ -96,7 +108,7 @@ const s = {
   modal: {
     background: "rgba(255,255,255,0.95)",
     backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)",
-    border: "1px solid rgba(102,20,20,0.15)",
+    border: "1px solid rgba(102,20,20,0.28)",
     borderRadius: 20, padding: "28px 28px 24px",
     maxWidth: 500, width: "90%", maxHeight: "90vh", overflowY: "auto",
     boxShadow: "0 24px 60px rgba(102,20,20,0.15)",
@@ -120,7 +132,7 @@ const s = {
   label: { display: "block", margin: "0 0 6px", fontWeight: 700, fontSize: 12, color: "#661414", letterSpacing: 0.5, textTransform: "uppercase" },
   input: {
     display: "block", width: "100%", padding: "11px 14px",
-    border: "1px solid rgba(102,20,20,0.18)", borderRadius: 10,
+    border: "1px solid rgba(102,20,20,0.3)", borderRadius: 10,
     fontSize: 14, marginBottom: 16, fontFamily: SF,
     background: "rgba(102,20,20,0.03)", color: "#000000",
     boxSizing: "border-box", outline: "none",
@@ -128,7 +140,7 @@ const s = {
   },
   row: { display: "flex", gap: 12 },
   errorBox: {
-    background: "rgba(102,20,20,0.06)", border: "1px solid rgba(102,20,20,0.25)",
+    background: "rgba(102,20,20,0.06)", border: "1px solid rgba(102,20,20,0.3)",
     borderRadius: 10, padding: "10px 14px", marginBottom: 16,
     color: "#661414", fontSize: 13, fontWeight: 600,
   },
@@ -142,7 +154,7 @@ const s = {
   },
   cancelBtn: {
     flex: 1, padding: "12px 0",
-    background: "rgba(102,20,20,0.05)", border: "1px solid rgba(102,20,20,0.15)",
+    background: "rgba(102,20,20,0.05)", border: "1px solid rgba(102,20,20,0.28)",
     color: "#661414", borderRadius: 10,
     fontWeight: 700, cursor: "pointer", fontSize: 14, fontFamily: SF,
   },

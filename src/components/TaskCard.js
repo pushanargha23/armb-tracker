@@ -11,16 +11,19 @@ import { getTaskStatus, getStatusColor, getTypeColor, formatDeadline, isOverdue 
 const SF   = "-apple-system, 'SF Pro Display', 'SF Pro Text', BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif";
 const MONO = "'SF Mono', SFMono-Regular, ui-monospace, monospace";
 
-function palette(isDark) {
+function palette(isDark, custom = {}) {
+  const bg     = custom.bg     || (isDark ? "#000000"                : "#FFFFFF");
+  const border = custom.border || (isDark ? "rgba(255,241,158,0.3)" : "rgba(102,20,20,0.26)");
+  const text   = custom.text   || (isDark ? "#FFF19E"               : "#000000");
   return isDark ? {
-    bgCard:        "rgba(255,241,158,0.05)",
+    bgCard:        bg === "#000000" ? "rgba(255,241,158,0.05)" : bg,
     bgCardAlt:     "rgba(255,241,158,0.02)",
     bgTimerCard:   "rgba(255,241,158,0.06)",
-    border:        "rgba(255,241,158,0.14)",
-    borderMid:     "rgba(255,241,158,0.22)",
-    accent:        "#FFF19E",
+    border,
+    borderMid:     "rgba(255,241,158,0.38)",
+    accent:        text,
     accentDim:     "rgba(255,241,158,0.1)",
-    text:          "#FFF19E",
+    text,
     textDim:       "rgba(255,241,158,0.4)",
     red:           "#ef4444",
     green:         "#10b981",
@@ -40,22 +43,22 @@ function palette(isDark) {
     delayedBg:     "linear-gradient(135deg,#ef4444,#dc2626)",
     delayedColor:  "#ffffff",
     modalBg:       "rgba(0,0,0,0.95)",
-    modalBorder:   "rgba(255,241,158,0.18)",
+    modalBorder:   border,
     modalShadow:   "0 24px 60px rgba(0,0,0,0.7)",
     cancelBg:      "rgba(255,241,158,0.06)",
-    cancelBorder:  "rgba(255,241,158,0.18)",
-    cancelColor:   "#FFF19E",
+    cancelBorder:  border,
+    cancelColor:   text,
     confirmBg:     "linear-gradient(135deg,#10b981,#047857)",
     confirmColor:  "#ffffff",
   } : {
-    bgCard:        "rgba(255,255,255,0.88)",
+    bgCard:        bg === "#FFFFFF" ? "rgba(255,255,255,0.88)" : bg,
     bgCardAlt:     "rgba(102,20,20,0.03)",
     bgTimerCard:   "rgba(102,20,20,0.04)",
-    border:        "rgba(102,20,20,0.12)",
-    borderMid:     "rgba(102,20,20,0.2)",
-    accent:        "#661414",
+    border,
+    borderMid:     "rgba(102,20,20,0.34)",
+    accent:        text,
     accentDim:     "rgba(102,20,20,0.07)",
-    text:          "#000000",
+    text,
     textDim:       "rgba(102,20,20,0.45)",
     red:           "#661414",
     green:         "#059669",
@@ -75,11 +78,11 @@ function palette(isDark) {
     delayedBg:     "linear-gradient(135deg,#661414,#991b1b)",
     delayedColor:  "#ffffff",
     modalBg:       "rgba(255,255,255,0.97)",
-    modalBorder:   "rgba(102,20,20,0.15)",
+    modalBorder:   border,
     modalShadow:   "0 24px 60px rgba(102,20,20,0.15)",
     cancelBg:      "rgba(102,20,20,0.05)",
-    cancelBorder:  "rgba(102,20,20,0.15)",
-    cancelColor:   "#661414",
+    cancelBorder:  border,
+    cancelColor:   text,
     confirmBg:     "linear-gradient(135deg,#059669,#047857)",
     confirmColor:  "#ffffff",
   };
@@ -104,8 +107,8 @@ function ConfirmModal({ taskTitle, onConfirm, onCancel, T }) {
 }
 
 function TaskCard({ task, userId }) {
-  const { isDark } = useTheme();
-  const T = palette(isDark);
+  const { isDark, C: custom } = useTheme();
+  const T = palette(isDark, custom);
   const [activeLog, setActiveLog] = useState(null);
   const [showConfirm, setShowConfirm] = useState(false);
   const timer = useLiveTimer(activeLog?.startTime);
@@ -175,70 +178,77 @@ function TaskCard({ task, userId }) {
         />
       )}
       <div style={{
+        display: "flex", alignItems: "center", gap: 16,
         background: isDelayed ? (isDark ? "rgba(239,68,68,0.06)" : "rgba(102,20,20,0.04)") : T.bgCard,
         border: isDelayed ? `1.5px solid ${T.red}44` : `1px solid ${T.border}`,
         borderLeft: `4px solid ${accentColor}`,
-        borderRadius: 16, padding: "18px 20px",
+        borderRadius: 14, padding: "14px 18px",
         boxShadow: T.shadow,
         backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)",
+        fontFamily: SF, opacity: task.completed ? 0.7 : 1,
         transition: "box-shadow 0.2s",
-        display: "flex", flexDirection: "column", gap: 0,
-        fontFamily: SF, opacity: task.completed ? 0.75 : 1,
       }}>
 
-        {isDelayed && (
-          <div style={{ display:"flex", alignItems:"center", gap:8, background:T.delayedBg, color:T.delayedColor, borderRadius:8, padding:"8px 12px", fontSize:11, fontWeight:800, letterSpacing:0.4, marginBottom:12, textTransform:"uppercase", boxShadow:`0 2px 8px ${T.red}35` }}>
-            <span style={{ width:8, height:8, borderRadius:"50%", background:"#fff", flexShrink:0, animation:"pulseDot 1s infinite", boxShadow:"0 0 6px rgba(255,255,255,0.8)" }} />
-            <span>⚠ DELAYED — Deadline passed on {formatDeadline(task.deadline)}</span>
+        {/* Title + badges + description */}
+        <div style={{ flex: 2, minWidth: 0 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 4 }}>
+            <span style={{ fontSize: 14, fontWeight: 700, color: isDelayed ? T.red : T.text, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 260 }}>{task.title}</span>
+            <span style={{ padding: "2px 7px", borderRadius: 5, fontSize: 10, fontWeight: 700, background: typeColor.bg, color: typeColor.text, whiteSpace: "nowrap" }}>{typeColor.label}</span>
+            {task.category && <span style={{ padding: "2px 7px", borderRadius: 5, fontSize: 10, fontWeight: 700, background: T.accentDim, color: T.accent, whiteSpace: "nowrap" }}>{task.category}</span>}
+            <span style={{ padding: "2px 7px", borderRadius: 5, fontSize: 10, fontWeight: 800, background: statusColor.bg, color: statusColor.text, whiteSpace: "nowrap" }}>{statusColor.label}</span>
+            {isRunning && (
+              <span style={{ display: "flex", alignItems: "center", gap: 4, padding: "2px 8px", borderRadius: 5, fontSize: 10, fontWeight: 700, background: T.workingBg, color: T.workingColor }}>
+                <span style={{ width: 6, height: 6, borderRadius: "50%", background: T.workingColor, animation: "pulseDot 1.2s ease-in-out infinite" }} />
+                In Progress
+              </span>
+            )}
           </div>
-        )}
-
-        {isRunning && !isDelayed && (
-          <div style={{ display:"flex", alignItems:"center", gap:6, background:T.workingBg, borderRadius:8, padding:"5px 10px", marginBottom:12, width:"fit-content" }}>
-            <span style={{ width:7, height:7, borderRadius:"50%", background:T.workingColor, display:"inline-block", animation:"pulseDot 1.2s ease-in-out infinite", boxShadow:`0 0 6px ${T.workingColor}` }} />
-            <span style={{ fontSize:11, fontWeight:700, color:T.workingColor, letterSpacing:0.3 }}>In Progress</span>
-          </div>
-        )}
-
-        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", gap:8, marginBottom:8 }}>
-          <h3 style={{ fontSize:15, fontWeight:700, color: isDelayed ? T.red : T.text, flex:1, lineHeight:1.4, margin:0 }}>{task.title}</h3>
-          <div style={{ display:"flex", gap:5, flexWrap:"wrap", justifyContent:"flex-end" }}>
-            <span style={{ padding:"3px 8px", borderRadius:6, fontSize:10, fontWeight:700, whiteSpace:"nowrap", background:typeColor.bg, color:typeColor.text }}>{typeColor.label}</span>
-            {task.category && <span style={{ padding:"3px 8px", borderRadius:6, fontSize:10, fontWeight:700, whiteSpace:"nowrap", background:T.accentDim, color:T.accent }}>{task.category}</span>}
-            <span style={{ padding:"3px 8px", borderRadius:6, fontSize:10, fontWeight:800, whiteSpace:"nowrap", background:statusColor.bg, color:statusColor.text }}>{statusColor.label}</span>
-          </div>
+          {task.description && <p style={{ fontSize: 12, color: T.textDim, margin: 0, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{task.description}</p>}
         </div>
 
-        {task.description && <p style={{ fontSize:13, color:T.textDim, lineHeight:1.6, margin:"0 0 10px" }}>{task.description}</p>}
-
-        <div style={{ display:"flex", gap:8, alignItems:"center", flexWrap:"wrap", marginBottom:12 }}>
-          <span style={{ fontSize:12, fontWeight: isDelayed ? 700 : 500, color: isDelayed ? T.red : T.textDim }}>
-            📅 {formatDeadline(task.deadline)}
-          </span>
+        {/* Deadline */}
+        <div style={{ flexShrink: 0, minWidth: 110, textAlign: "center" }}>
+          <div style={{ fontSize: 10, color: T.textDim, fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 2 }}>Deadline</div>
+          <div style={{ fontSize: 12, fontWeight: 700, color: isDelayed ? T.red : T.textDim }}>{formatDeadline(task.deadline)}</div>
+          {isDelayed && <div style={{ fontSize: 10, color: T.red, fontWeight: 700, marginTop: 2 }}>⚠ Overdue</div>}
         </div>
 
-        {isRunning && (
-          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", background:T.bgTimerCard, border:`1px solid ${T.borderMid}`, borderRadius:12, padding:"10px 14px", marginBottom:12 }}>
-            <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-              <span style={{ fontSize:16 }}>⏱</span>
-              <span style={{ fontFamily:MONO, fontSize:22, fontWeight:800, color:T.accent, letterSpacing:2 }}>{timer}</span>
-            </div>
-            <span style={{ fontSize:10, fontWeight:800, color:T.accent, letterSpacing:1, background:T.accentDim, padding:"3px 8px", borderRadius:6 }}>● LIVE</span>
-          </div>
-        )}
+        {/* Live timer */}
+        <div style={{ flexShrink: 0, minWidth: 100, textAlign: "center" }}>
+          {isRunning ? (
+            <>
+              <div style={{ fontSize: 10, color: T.textDim, fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 2 }}>Live</div>
+              <span style={{ fontFamily: MONO, fontSize: 16, fontWeight: 800, color: T.accent, letterSpacing: 1 }}>{timer}</span>
+            </>
+          ) : (
+            <span style={{ fontSize: 11, color: T.textDim }}>—</span>
+          )}
+        </div>
 
-        <div style={{ display:"flex", gap:8, marginTop:4 }}>
+        {/* Actions */}
+        <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
           {task.completed ? (
-            <div style={{ flex:1, padding:"10px 0", textAlign:"center", background:T.successBg, border:`1.5px solid ${T.successBorder}`, color:T.successText, borderRadius:10, fontWeight:700, fontSize:13, display:"flex", alignItems:"center", justifyContent:"center", gap:8, fontFamily:SF }}>
-              <span>✔</span> Task Completed
+            <div style={{ padding: "8px 14px", background: T.successBg, border: `1.5px solid ${T.successBorder}`, color: T.successText, borderRadius: 8, fontWeight: 700, fontSize: 12, display: "flex", alignItems: "center", gap: 6 }}>
+              ✔ Completed
             </div>
           ) : (
             <>
-              {!isRunning
-                ? <button style={{ flex:1, padding:"10px 0", background:T.startBg, color:T.startColor, border:"none", borderRadius:10, fontWeight:700, cursor:"pointer", fontSize:13, boxShadow:T.startShadow, fontFamily:SF }} onClick={handleStart}>▶ Start Timer</button>
-                : <button style={{ flex:1, padding:"10px 0", background:T.stopBg, color:T.stopColor, border:"none", borderRadius:10, fontWeight:700, cursor:"pointer", fontSize:13, boxShadow:T.stopShadow, fontFamily:SF }} onClick={handleStop}>■ Stop</button>
-              }
-              <button style={{ flex:1, padding:"10px 0", background:T.successBg, border:`1.5px solid ${T.successBorder}`, color:T.successText, borderRadius:10, fontWeight:700, cursor:"pointer", fontSize:13, fontFamily:SF }} onClick={() => setShowConfirm(true)}>✔ Mark Done</button>
+              {!task.accepted ? (
+                <button style={{ padding: "8px 14px", background: "#3b82f6", color: "#fff", border: "none", borderRadius: 8, fontWeight: 700, cursor: "pointer", fontSize: 12, fontFamily: SF }}
+                  onClick={() => updateDoc(doc(db, "tasks", task.id), { accepted: true })}>
+                  ✔ Accept
+                </button>
+              ) : !isRunning ? (
+                <button style={{ padding: "8px 14px", background: T.startBg, color: T.startColor, border: "none", borderRadius: 8, fontWeight: 700, cursor: "pointer", fontSize: 12, boxShadow: T.startShadow, fontFamily: SF }}
+                  onClick={handleStart}>▶ Start</button>
+              ) : (
+                <button style={{ padding: "8px 14px", background: T.stopBg, color: T.stopColor, border: "none", borderRadius: 8, fontWeight: 700, cursor: "pointer", fontSize: 12, boxShadow: T.stopShadow, fontFamily: SF }}
+                  onClick={handleStop}>■ Stop</button>
+              )}
+              {task.accepted && (
+                <button style={{ padding: "8px 14px", background: T.successBg, border: `1.5px solid ${T.successBorder}`, color: T.successText, borderRadius: 8, fontWeight: 700, cursor: "pointer", fontSize: 12, fontFamily: SF }}
+                  onClick={() => setShowConfirm(true)}>✔ Done</button>
+              )}
             </>
           )}
         </div>
@@ -248,12 +258,12 @@ function TaskCard({ task, userId }) {
 }
 
 export default function TaskCardList({ userId }) {
-  const { isDark } = useTheme();
-  const T = palette(isDark);
+  const { isDark, C: custom } = useTheme();
+  const T = palette(isDark, custom);
   const [tasks, setTasks] = useState([]);
 
   useEffect(() => {
-    const q = query(collection(db, "tasks"), where("assignedTo", "==", userId));
+    const q = query(collection(db, "tasks"), where("assignedTo", "array-contains", userId));
     return onSnapshot(q, snap => setTasks(snap.docs.map(d => ({ id: d.id, ...d.data() }))));
   }, [userId]);
 
@@ -263,12 +273,12 @@ export default function TaskCardList({ userId }) {
   });
 
   return (
-    <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill, minmax(290px, 1fr))", gap:16 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
       {sortedTasks.length === 0 && (
-        <div style={{ gridColumn:"1/-1", textAlign:"center", padding:"60px 0", background:T.bgCard, borderRadius:20, border:`1px solid ${T.border}`, backdropFilter:"blur(12px)", WebkitBackdropFilter:"blur(12px)" }}>
-          <div style={{ fontSize:44, marginBottom:12 }}>📭</div>
-          <p style={{ fontSize:15, fontWeight:600, color:T.text, marginBottom:4, fontFamily:SF }}>No tasks yet</p>
-          <p style={{ fontSize:13, color:T.textDim, fontFamily:SF }}>Your assigned tasks will appear here</p>
+        <div style={{ textAlign: "center", padding: "60px 0", background: T.bgCard, borderRadius: 20, border: `1px solid ${T.border}`, backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)" }}>
+          <div style={{ fontSize: 44, marginBottom: 12 }}>📭</div>
+          <p style={{ fontSize: 15, fontWeight: 600, color: T.text, marginBottom: 4, fontFamily: SF }}>No tasks yet</p>
+          <p style={{ fontSize: 13, color: T.textDim, fontFamily: SF }}>Your assigned tasks will appear here</p>
         </div>
       )}
       {sortedTasks.map(t => <TaskCard key={t.id} task={t} userId={userId} />)}

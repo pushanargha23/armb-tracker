@@ -9,23 +9,23 @@ const SF = "-apple-system, 'SF Pro Display', 'SF Pro Text', BlinkMacSystemFont, 
 
 function makeStyles(isDark) {
   const modalBg    = isDark ? "rgba(0,0,0,0.96)"                : "rgba(255,255,255,0.97)";
-  const border     = isDark ? "rgba(255,241,158,0.18)"           : "rgba(102,20,20,0.15)";
+  const border     = isDark ? "rgba(255,241,158,0.35)"           : "rgba(102,20,20,0.28)";
   const shadow     = isDark ? "0 24px 60px rgba(0,0,0,0.7)"     : "0 24px 60px rgba(102,20,20,0.15)";
   const titleColor = isDark ? "#FFF19E"                          : "#000000";
   const subColor   = isDark ? "rgba(255,241,158,0.4)"            : "rgba(102,20,20,0.5)";
   const labelColor = isDark ? "#FFF19E"                          : "#661414";
   const inputBg    = isDark ? "rgba(255,241,158,0.05)"           : "rgba(102,20,20,0.03)";
-  const inputBdr   = isDark ? "rgba(255,241,158,0.18)"           : "rgba(102,20,20,0.18)";
+  const inputBdr   = isDark ? "rgba(255,241,158,0.35)"           : "rgba(102,20,20,0.3)";
   const inputColor = isDark ? "#FFF19E"                          : "#000000";
   const hintColor  = isDark ? "rgba(255,241,158,0.35)"           : "rgba(102,20,20,0.4)";
   const closeBg    = isDark ? "rgba(255,241,158,0.08)"           : "rgba(102,20,20,0.06)";
-  const closeBdr   = isDark ? "rgba(255,241,158,0.2)"            : "rgba(102,20,20,0.15)";
+  const closeBdr   = isDark ? "rgba(255,241,158,0.35)"           : "rgba(102,20,20,0.28)";
   const iconBg     = isDark ? "linear-gradient(135deg,#FFF19E,#e8d800)" : "linear-gradient(135deg,#661414,#991b1b)";
   const errBg      = isDark ? "rgba(239,68,68,0.1)"              : "rgba(102,20,20,0.06)";
-  const errBdr     = isDark ? "rgba(239,68,68,0.3)"              : "rgba(102,20,20,0.25)";
+  const errBdr     = isDark ? "rgba(239,68,68,0.4)"              : "rgba(102,20,20,0.3)";
   const errColor   = isDark ? "#fca5a5"                          : "#661414";
   const cancelBg   = isDark ? "rgba(255,241,158,0.06)"           : "rgba(102,20,20,0.05)";
-  const cancelBdr  = isDark ? "rgba(255,241,158,0.18)"           : "rgba(102,20,20,0.15)";
+  const cancelBdr  = isDark ? "rgba(255,241,158,0.35)"           : "rgba(102,20,20,0.28)";
   const cancelTx   = isDark ? "#FFF19E"                          : "#661414";
   const createBg   = isDark ? "linear-gradient(135deg,#FFF19E,#e8d800)" : "linear-gradient(135deg,#661414,#991b1b)";
   const createTx   = isDark ? "#000000"                          : "#FFFFFF";
@@ -105,18 +105,21 @@ export default function CreateTaskModal({ users, onClose }) {
 
   const [title, setTitle] = useState("");
   const [desc, setDesc] = useState("");
-  const [assignedTo, setAssignedTo] = useState("");
+  const [assignedTo, setAssignedTo] = useState([]);
   const [deadline, setDeadline] = useState("");
   const [type, setType] = useState("Task");
   const [category, setCategory] = useState("Frontend");
   const [error, setError] = useState("");
 
+  const toggleUser = (uid) =>
+    setAssignedTo(prev => prev.includes(uid) ? prev.filter(id => id !== uid) : [...prev, uid]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
-    if (!title.trim()) { setError("Task title is required"); return; }
-    if (!assignedTo)   { setError("Please assign the task to a user"); return; }
-    if (!deadline)     { setError("Please set a deadline"); return; }
+    if (!title.trim())       { setError("Task title is required"); return; }
+    if (!assignedTo.length)  { setError("Please assign the task to at least one user"); return; }
+    if (!deadline)           { setError("Please set a deadline"); return; }
     if (isNaN(new Date(deadline).getTime())) { setError("Invalid deadline date"); return; }
     try {
       await addDoc(collection(db, "tasks"), {
@@ -125,7 +128,7 @@ export default function CreateTaskModal({ users, onClose }) {
         status: "In Progress", completed: false,
         createdBy: userData.id, createdAt: serverTimestamp(),
       });
-      setTitle(""); setDesc(""); setAssignedTo(""); setDeadline("");
+      setTitle(""); setDesc(""); setAssignedTo([]); setDeadline("");
       setType("Task"); setCategory("Frontend");
       onClose();
     } catch (err) { setError(err.message); }
@@ -177,13 +180,20 @@ export default function CreateTaskModal({ users, onClose }) {
           <input style={s.input} type="date" value={deadline} onChange={e => setDeadline(e.target.value)} min={format(new Date(), "yyyy-MM-dd")} required />
           <p style={s.hint}>Suggested: {defaultDeadline}</p>
 
-          <label style={s.label}>Assign To *</label>
-          <select style={s.input} value={assignedTo} onChange={e => setAssignedTo(e.target.value)} required>
-            <option value="">Select user...</option>
+          <label style={s.label}>Assign To * {assignedTo.length > 0 && `(${assignedTo.length} selected)`}</label>
+          <div style={{ ...s.input, height: "auto", padding: 8, display: "flex", flexDirection: "column", gap: 6, maxHeight: 160, overflowY: "auto" }}>
             {users.filter(u => u.role !== "admin").sort((a, b) => a.name.localeCompare(b.name)).map(u => (
-              <option key={u.id} value={u.id}>{u.name} ({u.email})</option>
+              <label key={u.id} style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", fontSize: 13, color: s.input.color }}>
+                <input
+                  type="checkbox"
+                  checked={assignedTo.includes(u.id)}
+                  onChange={() => toggleUser(u.id)}
+                  style={{ accentColor: s.label.color, width: 15, height: 15 }}
+                />
+                {u.name} <span style={{ opacity: 0.5, fontSize: 11 }}>({u.email})</span>
+              </label>
             ))}
-          </select>
+          </div>
 
           <div style={s.actions}>
             <button type="button" style={s.cancelBtn} onClick={onClose}>✕ Cancel</button>

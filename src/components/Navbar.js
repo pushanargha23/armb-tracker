@@ -5,10 +5,10 @@ const SF = "-apple-system, 'SF Pro Display', 'SF Pro Text', BlinkMacSystemFont, 
 
 export default function Navbar() {
   const { userData, logout } = useAuth();
-  const { isDark } = useTheme();
+  const { isDark, C: custom } = useTheme();
   const isAdmin = userData?.role === "admin";
   const logoSrc = isDark ? "/logo.svg" : "/logo-light.svg";
-  const s = makeStyles(isDark);
+  const s = makeStyles(isDark, custom || {});
 
   if (isAdmin) {
     return (
@@ -56,23 +56,23 @@ export default function Navbar() {
   );
 }
 
-function makeStyles(isDark) {
-  const bg       = isDark ? "#000000"                      : "#FFFFFF";
-  const border   = isDark ? "rgba(255,241,158,0.12)"       : "rgba(102,20,20,0.12)";
+function makeStyles(isDark, custom) {
+  const bg       = custom.bg     || (isDark ? "#000000"                      : "#FFFFFF");
+  const border   = custom.border || (isDark ? "rgba(255,241,158,0.28)"       : "rgba(102,20,20,0.28)");
   const shadow   = isDark ? "0 2px 16px rgba(0,0,0,0.6)"  : "0 2px 16px rgba(102,20,20,0.08)";
-  const brand    = isDark ? "#FFF19E"                      : "#661414";
+  const brand    = custom.text   || (isDark ? "#FFF19E"                      : "#661414");
   const brandSub = isDark ? "rgba(255,241,158,0.4)"        : "rgba(102,20,20,0.45)";
-  const text     = isDark ? "#FFF19E"                      : "#000000";
+  const text     = custom.text   || (isDark ? "#FFF19E"                      : "#000000");
   const textDim  = isDark ? "rgba(255,241,158,0.4)"        : "rgba(102,20,20,0.45)";
   const chipBg   = isDark ? "rgba(255,241,158,0.08)"       : "rgba(102,20,20,0.05)";
-  const chipBdr  = isDark ? "rgba(255,241,158,0.2)"        : "rgba(102,20,20,0.14)";
+  const chipBdr  = custom.border || (isDark ? "rgba(255,241,158,0.35)"       : "rgba(102,20,20,0.28)");
   const pillBg   = isDark ? "rgba(255,241,158,0.1)"        : "rgba(102,20,20,0.07)";
-  const pillBdr  = isDark ? "rgba(255,241,158,0.25)"       : "rgba(102,20,20,0.18)";
-  const divider  = isDark ? "rgba(255,241,158,0.1)"        : "rgba(102,20,20,0.1)";
+  const pillBdr  = custom.border || (isDark ? "rgba(255,241,158,0.4)"        : "rgba(102,20,20,0.32)");
+  const divider  = custom.border || (isDark ? "rgba(255,241,158,0.22)"       : "rgba(102,20,20,0.2)");
   const avatarBg = isDark ? "linear-gradient(135deg,#FFF19E,#e8d800)" : "linear-gradient(135deg,#661414,#991b1b)";
   const avatarTx = isDark ? "#000000"                      : "#FFFFFF";
   const logoutBg = isDark ? "rgba(255,241,158,0.06)"       : "rgba(102,20,20,0.06)";
-  const logoutBd = isDark ? "rgba(255,241,158,0.2)"        : "rgba(102,20,20,0.18)";
+  const logoutBd = custom.border || (isDark ? "rgba(255,241,158,0.35)"       : "rgba(102,20,20,0.32)");
 
   return {
     nav: {

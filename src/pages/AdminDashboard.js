@@ -29,18 +29,18 @@ const DARK = {
   bgUserStats:    "rgba(255,241,158,0.03)",
   bgTimerCard:    "rgba(255,241,158,0.05)",
   bgStatsSummary: "rgba(255,241,158,0.03)",
-  border:         "rgba(255,241,158,0.1)",
-  borderMid:      "rgba(255,241,158,0.18)",
+  border:         "rgba(255,241,158,0.3)",
+  borderMid:      "rgba(255,241,158,0.38)",
   violet:         "#FFF19E",
   violetDim:      "rgba(255,241,158,0.1)",
-  violetBorder:   "rgba(255,241,158,0.22)",
+  violetBorder:   "rgba(255,241,158,0.42)",
   text:           "#FFF19E",
   textMid:        "rgba(255,241,158,0.75)",
   textDim:        "rgba(255,241,158,0.35)",
   green:          "#10b981",
   greenDim:       "rgba(16,185,129,0.12)",
   greenText:      "#6ee7b7",
-  greenBorder:    "rgba(16,185,129,0.25)",
+  greenBorder:    "rgba(16,185,129,0.4)",
   red:            "#ef4444",
   amber:          "#FFF19E",
   shadow:         "0 2px 12px rgba(0,0,0,0.6)",
@@ -72,18 +72,18 @@ const LIGHT = {
   bgUserStats:    "rgba(102,20,20,0.03)",
   bgTimerCard:    "rgba(102,20,20,0.04)",
   bgStatsSummary: "rgba(102,20,20,0.03)",
-  border:         "rgba(102,20,20,0.1)",
-  borderMid:      "rgba(102,20,20,0.18)",
+  border:         "rgba(102,20,20,0.22)",
+  borderMid:      "rgba(102,20,20,0.3)",
   violet:         "#661414",
   violetDim:      "rgba(102,20,20,0.07)",
-  violetBorder:   "rgba(102,20,20,0.18)",
+  violetBorder:   "rgba(102,20,20,0.35)",
   text:           "#000000",
   textMid:        "#661414",
   textDim:        "rgba(102,20,20,0.45)",
   green:          "#059669",
   greenDim:       "rgba(5,150,105,0.08)",
   greenText:      "#065f46",
-  greenBorder:    "rgba(5,150,105,0.2)",
+  greenBorder:    "rgba(5,150,105,0.35)",
   red:            "#661414",
   amber:          "#661414",
   shadow:         "0 2px 10px rgba(102,20,20,0.08)",
@@ -106,13 +106,27 @@ const LIGHT = {
   overlayBg:      "rgba(0,0,0,0.5)",
 };
 
+function buildPalette(base, custom) {
+  return {
+    ...base,
+    bg:     custom.bg     || base.bg,
+    border: custom.border || base.border,
+    borderMid: custom.border || base.borderMid,
+    violetBorder: custom.border || base.violetBorder,
+    text:   custom.text   || base.text,
+    textMid: custom.text  || base.textMid,
+    violet: custom.text   || base.violet,
+    amber:  custom.text   || base.amber,
+  };
+}
+
 function LiveTimer({ startTime, violet }) {
   const t = useLiveTimer(startTime);
   return <span style={{ color: violet, fontWeight: 700, fontFamily: "'SF Mono', SFMono-Regular, ui-monospace, monospace" }}>{t}</span>;
 }
 
 export default function AdminDashboard() {
-  const { isDark, toggle: toggleDark } = useTheme();
+  const { isDark, toggle: toggleDark, customColors, updateColor, resetColors } = useTheme();
   const [users, setUsers] = useState([]);
   const [tasks, setTasks] = useState([]);
   const [timeLogs, setTimeLogs] = useState([]);
@@ -129,7 +143,7 @@ export default function AdminDashboard() {
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [deleteTaskConfirm, setDeleteTaskConfirm] = useState(null);
 
-  const C = isDark ? DARK : LIGHT;
+  const C = buildPalette(isDark ? DARK : LIGHT, isDark ? customColors.dark : customColors.light);
 
   useEffect(() => {
     const u1 = onSnapshot(collection(db, "users"), s => setUsers(s.docs.map(d => ({ id: d.id, ...d.data() }))));
@@ -177,8 +191,10 @@ export default function AdminDashboard() {
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       const titleMatch = task.title?.toLowerCase().includes(q);
-      const userMatch = getUserName(task.assignedTo).toLowerCase().includes(q);
-      if (!titleMatch && !userMatch) return false;
+      const assignedNames = Array.isArray(task.assignedTo)
+        ? task.assignedTo.map(id => getUserName(id)).join(" ").toLowerCase()
+        : getUserName(task.assignedTo).toLowerCase();
+      if (!titleMatch && !assignedNames.includes(q)) return false;
     }
     return true;
   });
@@ -196,6 +212,7 @@ export default function AdminDashboard() {
     { key: "daily-time", label: "Daily Time", icon: "◷" },
     { key: "logs",       label: "Logs",       icon: "≡" },
     { key: "reports",    label: "Reports",    icon: "◎" },
+    { key: "theme",      label: "Theme",      icon: "🎨" },
   ];
 
   const S = makeStyles(C);
@@ -413,7 +430,7 @@ export default function AdminDashboard() {
                           </div>
                           <p style={{ margin: "0 0 10px", fontSize: 12, color: C.textDim, lineHeight: 1.5 }}>{t.description || "No description provided"}</p>
                           <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
-                            <span style={{ fontSize: 11, color: C.text, fontWeight: 700 }}>👤 {getUserName(t.assignedTo)}</span>
+                            <span style={{ fontSize: 11, color: C.text, fontWeight: 700 }}>👤 {Array.isArray(t.assignedTo) ? t.assignedTo.map(id => getUserName(id)).join(", ") : getUserName(t.assignedTo)}</span>
                             <span style={{ fontSize: 11, color: C.red, fontWeight: 600 }}>📅 {formatDeadline(t.deadline)}</span>
                             {t.createdAt && <span style={{ fontSize: 11, color: C.textDim, fontWeight: 500 }}>Created {format(t.createdAt.toDate?.() || new Date(), "MMM d")}</span>}
                           </div>
@@ -486,7 +503,7 @@ export default function AdminDashboard() {
               </div>
               <div style={S.userGrid}>
                 {users.map(u => {
-                  const userTasks = tasks.filter(t => t.assignedTo === u.id);
+                  const userTasks = tasks.filter(t => Array.isArray(t.assignedTo) ? t.assignedTo.includes(u.id) : t.assignedTo === u.id);
                   const done = userTasks.filter(t => t.completed).length;
                   const isWorking = u.status === "working";
                   return (
@@ -543,6 +560,57 @@ export default function AdminDashboard() {
             <div style={S.card}>
               <div style={S.cardHeader}><span style={S.cardTitle}>Analytics & Reports</span></div>
               <ReportCharts timeLogs={timeLogs} users={users} tasks={tasks} />
+            </div>
+          )}
+
+          {/* ── Theme ── */}
+          {activeTab === "theme" && (
+            <div style={S.card}>
+              <div style={S.cardHeader}>
+                <span style={S.cardTitle}>🎨 Theme Customization</span>
+                <button onClick={resetColors} style={{ ...S.editBtn, fontSize: 12 }}>↺ Reset Defaults</button>
+              </div>
+              <p style={S.cardDesc}>Changes apply instantly across the entire app for all users</p>
+              {["dark", "light"].map(mode => (
+                <div key={mode} style={{ marginBottom: 28 }}>
+                  <div style={{ fontSize: 13, fontWeight: 800, color: C.violet, letterSpacing: 1, textTransform: "uppercase", marginBottom: 16, display: "flex", alignItems: "center", gap: 8 }}>
+                    <span>{mode === "dark" ? "☽" : "☀"}</span> {mode === "dark" ? "Dark Mode" : "Light Mode"}
+                  </div>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 12 }}>
+                    {[
+                      { key: "bg",     label: "Background Color",  icon: "◻" },
+                      { key: "border", label: "Border / Outline Color", icon: "▣" },
+                      { key: "text",   label: "Text Color",        icon: "T" },
+                    ].map(({ key, label, icon }) => (
+                      <div key={key} style={{ background: C.bgCardAlt, border: `1px solid ${C.border}`, borderRadius: 12, padding: 16 }}>
+                        <div style={{ fontSize: 11, fontWeight: 700, color: C.textDim, textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 10 }}>
+                          {icon} {label}
+                        </div>
+                        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                          <div style={{ position: "relative", width: 44, height: 44, borderRadius: 10, overflow: "hidden", border: `2px solid ${C.border}`, flexShrink: 0 }}>
+                            <input
+                              type="color"
+                              value={customColors[mode][key].startsWith("rgba") ? "#888888" : customColors[mode][key]}
+                              onChange={e => updateColor(mode, key, e.target.value)}
+                              style={{ position: "absolute", inset: "-6px", width: "calc(100% + 12px)", height: "calc(100% + 12px)", border: "none", cursor: "pointer", padding: 0 }}
+                            />
+                          </div>
+                          <div style={{ flex: 1 }}>
+                            <input
+                              type="text"
+                              value={customColors[mode][key]}
+                              onChange={e => updateColor(mode, key, e.target.value)}
+                              style={{ width: "100%", padding: "7px 10px", background: C.bgInput, border: `1px solid ${C.border}`, borderRadius: 8, fontSize: 12, color: C.text, fontFamily: "'SF Mono', monospace", boxSizing: "border-box", outline: "none" }}
+                              placeholder="#hex or rgba(...)"
+                            />
+                          </div>
+                        </div>
+                        <div style={{ marginTop: 10, height: 28, borderRadius: 6, background: customColors[mode][key], border: `1px solid ${C.border}` }} />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
             </div>
           )}
         </main>

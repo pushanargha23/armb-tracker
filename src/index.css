@@ -27,25 +27,25 @@ input:focus, select:focus, textarea:focus {
   background: rgba(255,255,255,0.08);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
-  border: 1px solid rgba(255,241,158,0.15);
+  border: 1px solid rgba(255,241,158,0.32);
 }
 .glass-light {
   background: rgba(255,255,255,0.72);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
-  border: 1px solid rgba(102,20,20,0.12);
+  border: 1px solid rgba(102,20,20,0.26);
 }
 .glass-filled {
   background: rgba(255,241,158,0.12);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255,241,158,0.25);
+  border: 1px solid rgba(255,241,158,0.42);
 }
 .glass-filled-light {
   background: rgba(102,20,20,0.08);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(102,20,20,0.18);
+  border: 1px solid rgba(102,20,20,0.32);
 }
 
 @keyframes pulseDot {

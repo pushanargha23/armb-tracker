@@ -8,24 +8,24 @@ const SF = "-apple-system, 'SF Pro Display', 'SF Pro Text', BlinkMacSystemFont, 
 
 function makeStyles(isDark) {
   const modalBg   = isDark ? "rgba(0,0,0,0.96)"                  : "rgba(255,255,255,0.97)";
-  const border    = isDark ? "rgba(255,241,158,0.18)"             : "rgba(102,20,20,0.15)";
+  const border    = isDark ? "rgba(255,241,158,0.35)"             : "rgba(102,20,20,0.28)";
   const shadow    = isDark ? "0 24px 60px rgba(0,0,0,0.7)"       : "0 24px 60px rgba(102,20,20,0.15)";
   const text      = isDark ? "#FFF19E"                            : "#000000";
   const textDim   = isDark ? "rgba(255,241,158,0.5)"              : "rgba(102,20,20,0.5)";
   const accent    = isDark ? "#FFF19E"                            : "#661414";
   const inputBg   = isDark ? "rgba(255,241,158,0.05)"             : "rgba(102,20,20,0.03)";
-  const inputBdr  = isDark ? "rgba(255,241,158,0.2)"              : "rgba(102,20,20,0.18)";
-  const rowBorder = isDark ? "rgba(255,241,158,0.08)"             : "rgba(102,20,20,0.08)";
-  const thBorder  = isDark ? "rgba(255,241,158,0.15)"             : "rgba(102,20,20,0.15)";
+  const inputBdr  = isDark ? "rgba(255,241,158,0.35)"             : "rgba(102,20,20,0.3)";
+  const rowBorder = isDark ? "rgba(255,241,158,0.18)"             : "rgba(102,20,20,0.15)";
+  const thBorder  = isDark ? "rgba(255,241,158,0.3)"              : "rgba(102,20,20,0.28)";
   const helpBg    = isDark ? "rgba(255,241,158,0.05)"             : "rgba(102,20,20,0.04)";
-  const helpBdr   = isDark ? "rgba(255,241,158,0.15)"             : "rgba(102,20,20,0.15)";
+  const helpBdr   = isDark ? "rgba(255,241,158,0.3)"              : "rgba(102,20,20,0.28)";
   const errBg     = isDark ? "rgba(239,68,68,0.1)"                : "rgba(102,20,20,0.06)";
-  const errBdr    = isDark ? "rgba(239,68,68,0.3)"                : "rgba(102,20,20,0.25)";
+  const errBdr    = isDark ? "rgba(239,68,68,0.4)"                : "rgba(102,20,20,0.3)";
   const errTx     = isDark ? "#fca5a5"                            : "#661414";
   const uploadBg  = isDark ? "rgba(255,241,158,0.04)"             : "rgba(102,20,20,0.03)";
   const uploadBdr = isDark ? "#FFF19E"                            : "#661414";
   const cancelBg  = isDark ? "rgba(255,241,158,0.06)"             : "rgba(102,20,20,0.05)";
-  const cancelBdr = isDark ? "rgba(255,241,158,0.18)"             : "rgba(102,20,20,0.15)";
+  const cancelBdr = isDark ? "rgba(255,241,158,0.35)"             : "rgba(102,20,20,0.28)";
   const cancelTx  = isDark ? "#FFF19E"                            : "#661414";
   const createBg  = isDark ? "linear-gradient(135deg,#FFF19E,#e8d800)" : "linear-gradient(135deg,#661414,#991b1b)";
   const createTx  = isDark ? "#000000"                            : "#FFFFFF";
@@ -131,11 +131,18 @@ export default function BulkUploadModal({ users, onClose, onSuccess }) {
       for (const task of preview) {
         if (task._error) { failureCount++; errors.push(task._error); continue; }
         try {
-          const snap = await getDocs(query(collection(db, "users"), where("email", "==", task.assignedUser)));
-          if (snap.empty) { failureCount++; errors.push(`User "${task.assignedUser}" not found`); continue; }
+          const emails = task.assignedUser.split("|").map(e => e.trim()).filter(Boolean);
+          const uids = [];
+          let hasError = false;
+          for (const email of emails) {
+            const snap = await getDocs(query(collection(db, "users"), where("email", "==", email)));
+            if (snap.empty) { errors.push(`User "${email}" not found`); hasError = true; break; }
+            uids.push(snap.docs[0].id);
+          }
+          if (hasError) { failureCount++; continue; }
           await addDoc(collection(db, "tasks"), {
             title: task.title, description: task.description || "",
-            type: task.type || "Task", assignedTo: snap.docs[0].id,
+            type: task.type || "Task", assignedTo: uids,
             deadline: task.deadline, status: "In Progress",
             completed: false, createdAt: serverTimestamp(), createdBy: "bulk_upload",
           });
@@ -180,7 +187,7 @@ export default function BulkUploadModal({ users, onClose, onSuccess }) {
               <p style={s.helpText}>Your CSV must include these columns:</p>
               <ul style={s.helpList}>
                 <li>Task Name (required)</li>
-                <li>Assigned User (email, required)</li>
+                <li>Assigned User — single or multiple emails separated by <strong>|</strong> e.g. <em>a@x.com|b@x.com</em> (required)</li>
                 <li>Deadline (YYYY-MM-DD, required)</li>
                 <li>Description (optional)</li>
                 <li>Type (Bug or Task, optional)</li>

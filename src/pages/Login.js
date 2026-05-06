@@ -117,7 +117,7 @@ const S = {
     position:"relative", zIndex:2,
     background:"rgba(255,241,158,0.06)",
     backdropFilter:"blur(24px)", WebkitBackdropFilter:"blur(24px)",
-    border:"1.5px solid rgba(255,241,158,0.22)",
+    border:"1.5px solid rgba(255,241,158,0.38)",
     borderRadius:24, padding:"44px 38px 34px",
     width:"100%", maxWidth:400,
     boxShadow:"0 8px 40px rgba(255,241,158,0.08), 0 2px 12px rgba(0,0,0,0.6)",
@@ -133,7 +133,7 @@ const S = {
   },
   liveBadge: {
     display:"flex", alignItems:"center", gap:6,
-    background:"rgba(255,241,158,0.08)", border:"1px solid rgba(255,241,158,0.25)",
+    background:"rgba(255,241,158,0.08)", border:"1px solid rgba(255,241,158,0.38)",
     borderRadius:20, padding:"4px 12px", marginBottom:16,
   },
   liveDot: {
@@ -145,12 +145,12 @@ const S = {
   title: { margin:"0 0 7px", fontSize:24, fontWeight:800, color:"#FFF19E", textAlign:"center", letterSpacing:"-0.5px" },
   subtitle: { margin:"0 0 26px", fontSize:13, color:"rgba(255,241,158,0.6)", textAlign:"center", lineHeight:1.55 },
   dividerRow: { display:"flex", alignItems:"center", gap:10, width:"100%", marginBottom:18 },
-  dividerLine: { flex:1, height:1, background:"rgba(255,241,158,0.15)" },
+  dividerLine: { flex:1, height:1, background:"rgba(255,241,158,0.28)" },
   dividerLabel: { fontSize:11, fontWeight:700, color:"rgba(255,241,158,0.4)", letterSpacing:"0.8px", textTransform:"uppercase", whiteSpace:"nowrap" },
   googleBtn: {
     display:"flex", alignItems:"center", justifyContent:"center", gap:10,
     width:"100%", padding:"13px 20px",
-    background:"rgba(255,241,158,0.07)", border:"1.5px solid rgba(255,241,158,0.25)",
+    background:"rgba(255,241,158,0.07)", border:"1.5px solid rgba(255,241,158,0.38)",
     borderRadius:12, cursor:"pointer", fontSize:14, fontWeight:600,
     color:"#FFF19E", fontFamily: SF,
     transition:"all 0.2s", boxShadow:"0 2px 10px rgba(255,241,158,0.06)", letterSpacing:"0.1px",
@@ -168,7 +168,7 @@ const S = {
   featRow: { display:"flex", gap:8, width:"100%", marginTop:20 },
   featChip: {
     flex:1, display:"flex", flexDirection:"column", alignItems:"center", gap:5,
-    background:"rgba(255,241,158,0.05)", border:"1px solid rgba(255,241,158,0.15)",
+    background:"rgba(255,241,158,0.05)", border:"1px solid rgba(255,241,158,0.28)",
     borderRadius:10, padding:"10px 6px",
   },
   featLabel: { fontSize:10, fontWeight:700, color:"#FFF19E", letterSpacing:"0.3px" },

@@ -96,7 +96,7 @@ const validateTaskRow = (task, rowNumber) => {
   }
 
   if (!task.assignedUser) {
-    errors.push("Assigned user is required");
+    errors.push("Assigned user(s) is required");
   }
 
   if (!task.deadline) {
@@ -127,21 +127,8 @@ export const isValidDate = (dateStr) => {
  * Generate CSV template
  */
 export const generateCSVTemplate = () => {
-  const headers = [
-    "Task Name",
-    "Description",
-    "Assigned User",
-    "Deadline",
-    "Type",
-  ];
-  const example = [
-    "Fix login bug",
-    "Users can't login with Google",
-    "john@example.com",
-    "2024-05-15",
-    "Bug",
-  ];
-
+  const headers = ["Task Name", "Description", "Assigned User", "Deadline", "Type"];
+  const example = ["Fix login bug", "Users can't login with Google", "john@example.com|jane@example.com", "2024-05-15", "Bug"];
   return `${headers.join(",")}\n${example.join(",")}`;
 };
 

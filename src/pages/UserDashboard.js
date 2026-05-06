@@ -99,15 +99,27 @@ function getTimeOfDay() {
 
 export default function UserDashboard() {
   const { user, userData } = useAuth();
-  const { isDark, toggle: toggleDark } = useTheme();
+  const { isDark, toggle: toggleDark, C: custom } = useTheme();
   const [tasks, setTasks] = useState([]);
   const [logs, setLogs] = useState([]);
   const [activeSection, setActiveSection] = useState("tasks");
 
-  const C = isDark ? DARK : LIGHT;
+  const base = isDark ? DARK : LIGHT;
+  const C = {
+    ...base,
+    bg:          custom?.bg     || base.bg,
+    border:      custom?.border || base.border,
+    borderMid:   custom?.border || base.borderMid,
+    violetBorder: custom?.border || base.violetBorder,
+    text:        custom?.text   || base.text,
+    textMid:     custom?.text   || base.textMid,
+    violet:      custom?.text   || base.violet,
+    amber:       custom?.text   || base.amber,
+    blue:        custom?.text   || base.blue,
+  };
 
   useEffect(() => {
-    const q = query(collection(db, "tasks"), where("assignedTo", "==", user.uid));
+    const q = query(collection(db, "tasks"), where("assignedTo", "array-contains", user.uid));
     return onSnapshot(q, snap => setTasks(snap.docs.map(d => ({ id: d.id, ...d.data() }))));
   }, [user.uid]);
 
