@@ -127,6 +127,7 @@ export default function AdminDashboard() {
   const [searchQuery, setSearchQuery] = useState("");
   const [editingUser, setEditingUser] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
+  const [deleteTaskConfirm, setDeleteTaskConfirm] = useState(null);
 
   const C = isDark ? DARK : LIGHT;
 
@@ -160,6 +161,12 @@ export default function AdminDashboard() {
   const handleDeleteUser = async (userId) => {
     await deleteDoc(doc(db, "users", userId));
     setDeleteConfirm(null);
+  };
+  const handleDeleteTask = async (taskId) => {
+    await deleteDoc(doc(db, "tasks", taskId));
+    setDeleteTaskConfirm(null);
+    setSuccessMessage("Task deleted successfully");
+    setTimeout(() => setSuccessMessage(""), 4000);
   };
 
   const filteredTasks = tasks.filter(task => {
@@ -417,6 +424,7 @@ export default function AdminDashboard() {
                             ? <button className="action-btn" onClick={() => handleMarkCompleted(t.id)} style={S.doneBtn}>Done</button>
                             : <button className="action-btn" onClick={() => handleReactivate(t.id)} style={S.reactivateBtn}>Reactivate</button>
                           }
+                          <button className="action-btn" onClick={() => setDeleteTaskConfirm(t)} style={S.deleteTaskBtn}>Delete</button>
                         </div>
                       </div>
                     );
@@ -552,6 +560,23 @@ export default function AdminDashboard() {
             <div style={{ display: "flex", gap: 10 }}>
               <button style={S.cancelBtn} onClick={() => setDeleteConfirm(null)}>Cancel</button>
               <button style={S.deleteBtn} onClick={() => handleDeleteUser(deleteConfirm.id)}>Yes, Delete</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Task Confirm */}
+      {deleteTaskConfirm && (
+        <div style={S.overlay}>
+          <div style={S.confirmModal}>
+            <div style={{ fontSize: 40, color: C.red, marginBottom: 16 }}>✦</div>
+            <h3 style={{ color: C.text, fontSize: 20, fontWeight: 800, margin: "0 0 10px", letterSpacing: -0.3 }}>Delete Task?</h3>
+            <p style={{ color: C.textDim, fontSize: 13, margin: "0 0 4px" }}>You're about to permanently remove</p>
+            <p style={{ color: C.violet, fontSize: 16, fontWeight: 800, margin: "0 0 6px" }}>{deleteTaskConfirm.title}</p>
+            <p style={{ color: C.textDim, fontSize: 12, margin: "0 0 28px" }}>This action cannot be undone. Associated time logs will remain intact.</p>
+            <div style={{ display: "flex", gap: 10 }}>
+              <button style={S.cancelBtn} onClick={() => setDeleteTaskConfirm(null)}>Cancel</button>
+              <button style={S.deleteBtn} onClick={() => handleDeleteTask(deleteTaskConfirm.id)}>Yes, Delete</button>
             </div>
           </div>
         </div>
@@ -790,6 +815,15 @@ function makeStyles(C) {
       padding: "7px 14px",
       background: "rgba(180,83,9,0.1)", border: "1px solid rgba(180,83,9,0.25)",
       borderRadius: 7, color: C.amber,
+      fontWeight: 700, fontSize: 12, cursor: "pointer",
+      fontFamily: SF, transition: "all 0.2s",
+    },
+    deleteTaskBtn: {
+      padding: "7px 14px",
+      background: isDark ? "rgba(239,68,68,0.1)" : "rgba(102,20,20,0.06)",
+      border: isDark ? "1px solid rgba(239,68,68,0.25)" : "1px solid rgba(102,20,20,0.2)",
+      borderRadius: 7,
+      color: isDark ? "#f87171" : "#661414",
       fontWeight: 700, fontSize: 12, cursor: "pointer",
       fontFamily: SF, transition: "all 0.2s",
     },
