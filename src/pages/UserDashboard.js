@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { collection, query, where, onSnapshot, orderBy } from "firebase/firestore";
 import { db } from "../firebase/config";
+import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import TaskCardList from "../components/TaskCard";
 import { useAuth } from "../context/AuthContext";
@@ -100,6 +101,7 @@ function getTimeOfDay() {
 export default function UserDashboard() {
   const { user, userData } = useAuth();
   const { isDark, toggle: toggleDark, C: custom } = useTheme();
+  const navigate = useNavigate();
   const [tasks, setTasks] = useState([]);
   const [logs, setLogs] = useState([]);
   const [activeSection, setActiveSection] = useState("tasks");
@@ -139,6 +141,35 @@ export default function UserDashboard() {
   const overdueTasks = tasks.filter(t => !t.completed && t.deadline && new Date(t.deadline) < new Date()).length;
   const isWorking = userData?.status === "working";
   const progress = totalTasks ? Math.round((completedTasks / totalTasks) * 100) : 0;
+  const lifetimeCompleted = userData?.lifetimeCompleted || 0;
+  const pts = userData?.lifetimePoints || 0;
+
+  // Career stats derived from all-time logs
+  const lifetimeHours    = +(logs.reduce((a, l) => a + l.duration, 0) / 3600).toFixed(1);
+  const lifetimeSessions = logs.length;
+  const avgSessionMins   = lifetimeSessions ? +((logs.reduce((a, l) => a + l.duration, 0) / lifetimeSessions) / 60).toFixed(1) : 0;
+  const longestSession   = logs.length ? +(Math.max(...logs.map(l => l.duration)) / 3600).toFixed(2) : 0;
+  const lifetimeAccepted = tasks.filter(t => t.accepted).length;
+  const lifetimeRate     = lifetimeAccepted ? Math.round((lifetimeCompleted / lifetimeAccepted) * 100) : 0;
+
+  // Most worked project
+  const projectHoursMap = {};
+  logs.forEach(l => {
+    const proj = tasks.find(t => t.id === l.taskId)?.projectName || "Unassigned";
+    projectHoursMap[proj] = (projectHoursMap[proj] || 0) + l.duration / 3600;
+  });
+  const topProject = Object.entries(projectHoursMap).sort((a, b) => b[1] - a[1])[0];
+
+  // Most worked category
+  const catHoursMap = {};
+  logs.forEach(l => {
+    const cat = tasks.find(t => t.id === l.taskId)?.category || "Uncategorized";
+    catHoursMap[cat] = (catHoursMap[cat] || 0) + l.duration / 3600;
+  });
+  const topCategory = Object.entries(catHoursMap).sort((a, b) => b[1] - a[1])[0];
+
+  // First session date
+  const firstSession = logs.length ? logs[logs.length - 1]?.endTime?.toDate?.() : null;
 
   const S = makeStyles(C);
 
@@ -198,6 +229,7 @@ export default function UserDashboard() {
             {[
               { key:"tasks",   icon:"▦", label:"My Tasks",  count:activeTasks },
               { key:"history", icon:"◷", label:"History",   count:logs.length },
+              { key:"career",  icon:"🏅", label:"Career",    count:0 },
             ].map(item => (
               <button key={item.key} className="nav-btn"
                 style={{ ...S.navBtn, ...(activeSection === item.key ? S.navBtnActive : {}) }}
@@ -213,6 +245,10 @@ export default function UserDashboard() {
                 {activeSection === item.key && <span style={S.navActivePip} />}
               </button>
             ))}
+            <button className="nav-btn" style={S.navBtn} onClick={() => navigate("/leaderboard")}>
+              <span style={S.navIcon}>🏆</span>
+              <span style={{ flex:1 }}>Leaderboard</span>
+            </button>
           </nav>
 
           <div style={S.sidebarFooter}>
@@ -243,10 +279,11 @@ export default function UserDashboard() {
 
           <div style={S.statsGrid}>
             {[
-              { label:"Total Tasks",  value:totalTasks,     accent:C.amber, sub:"Assigned",       icon:"✦" },
-              { label:"Active",       value:activeTasks,    accent:C.blue,  sub:"In progress",    icon:"⚡" },
-              { label:"Completed",    value:completedTasks, accent:C.green, sub:`${progress}% rate`, icon:"✓" },
-              { label:"Overdue",      value:overdueTasks,   accent:C.red,   sub:"Need attention", icon:"!" },
+              { label:"Total Tasks",      value:totalTasks,         accent:C.amber, sub:"Assigned",            icon:"✦" },
+              { label:"Active",           value:activeTasks,        accent:C.blue,  sub:"In progress",         icon:"⚡" },
+              { label:"Completed",        value:completedTasks,     accent:C.green, sub:`${progress}% rate`,   icon:"✓" },
+              { label:"Overdue",          value:overdueTasks,       accent:C.red,   sub:"Need attention",      icon:"!" },
+              { label:"Lifetime Completed", value:lifetimeCompleted, accent: isDark ? "#a78bfa" : "#7c3aed", sub:"All time · never resets", icon:"🏅" },
             ].map(s => (
               <div key={s.label} style={S.statCard} className="stat-card">
                 <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start" }}>
@@ -301,6 +338,113 @@ export default function UserDashboard() {
                   ))}
                 </div>
               )}
+            </div>
+          )}
+
+          {activeSection === "career" && (
+            <div style={{ display:"flex", flexDirection:"column", gap:20 }}>
+
+              {/* Header */}
+              <div style={S.card}>
+                <div style={{ display:"flex", alignItems:"center", gap:16 }}>
+                  <div style={{ width:60, height:60, borderRadius:16, background: isDark ? "linear-gradient(135deg,#a78bfa,#7c3aed)" : "linear-gradient(135deg,#7c3aed,#6d28d9)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:26, flexShrink:0, boxShadow:"0 4px 16px rgba(124,58,237,0.35)" }}>
+                    🏅
+                  </div>
+                  <div>
+                    <h2 style={{ margin:"0 0 4px", fontSize:20, fontWeight:800, color:C.text }}>Career Overview</h2>
+                    <p style={{ margin:0, fontSize:12, color:C.textDim }}>Your all-time performance record — never resets</p>
+                    {firstSession && (
+                      <p style={{ margin:"4px 0 0", fontSize:11, color:C.textDim }}>
+                        📅 Member since {firstSession.toLocaleDateString("en-US", { month:"long", year:"numeric" })}
+                      </p>
+                    )}
+                    <span style={{ display:"inline-flex", alignItems:"center", gap:5, marginTop:6, padding:"5px 14px", borderRadius:20, background:C.violetDim, border:`1px solid ${C.violetBorder}`, fontSize:15, fontWeight:700, color:C.violet, fontFamily:MONO }}>✉️ {user.email}</span>
+                  </div>
+                  <div style={{ marginLeft:"auto", textAlign:"center" }}>
+                    <div style={{ fontSize:32, fontWeight:800, color: isDark ? "#a78bfa" : "#7c3aed", fontFamily:MONO, textShadow: isDark ? "0 0 16px #a78bfa88" : "none" }}>{pts}</div>
+                    <div style={{ fontSize:10, fontWeight:700, color:C.textDim, letterSpacing:1, textTransform:"uppercase" }}>Career Points</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Stats grid */}
+              <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit, minmax(160px,1fr))", gap:14 }}>
+                {[
+                  { icon:"✅", label:"Tasks Completed",  value:lifetimeCompleted, sub:"All time",           color: isDark ? "#10b981" : "#059669" },
+                  { icon:"⏱", label:"Hours Logged",     value:lifetimeHours+"h", sub:"Total work time",    color: isDark ? "#38bdf8" : "#0284c7" },
+                  { icon:"📋", label:"Sessions",        value:lifetimeSessions,  sub:"Work sessions",      color: isDark ? "#FFF19E" : "#661414" },
+                  { icon:"⏳", label:"Avg Session",     value:avgSessionMins+"m",sub:"Per session",         color: isDark ? "#f59e0b" : "#b45309" },
+                  { icon:"🔥", label:"Longest Session", value:longestSession+"h",sub:"Single session",      color: isDark ? "#f472b6" : "#db2777" },
+                  { icon:"📊", label:"Completion Rate", value:lifetimeRate+"%",  sub:"Accepted → done",    color: isDark ? "#34d399" : "#047857" },
+                ].map(s => (
+                  <div key={s.label} style={{ background:C.bgCard, backdropFilter:"blur(18px)", WebkitBackdropFilter:"blur(18px)", border:`1px solid ${C.border}`, borderRadius:14, padding:"18px 16px", boxShadow:C.shadow, textAlign:"center" }}>
+                    <div style={{ fontSize:22, marginBottom:8 }}>{s.icon}</div>
+                    <div style={{ fontSize:26, fontWeight:800, color:s.color, fontFamily:MONO, lineHeight:1 }}>{s.value}</div>
+                    <div style={{ fontSize:11, fontWeight:700, color:C.textMid, marginTop:8, letterSpacing:0.4, textTransform:"uppercase" }}>{s.label}</div>
+                    <div style={{ fontSize:10, color:C.textDim, marginTop:3 }}>{s.sub}</div>
+                    <div style={{ height:3, borderRadius:2, marginTop:10, background:s.color+"22" }}>
+                      <div style={{ height:"100%", borderRadius:2, background:s.color, width:"55%", transition:"width 0.6s ease" }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Top project & category */}
+              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:14 }}>
+                <div style={{ background:C.bgCard, backdropFilter:"blur(18px)", WebkitBackdropFilter:"blur(18px)", border:`1px solid ${C.border}`, borderRadius:14, padding:"20px", boxShadow:C.shadow }}>
+                  <div style={{ fontSize:11, fontWeight:700, color:C.textDim, letterSpacing:1, textTransform:"uppercase", marginBottom:12 }}>📁 Most Worked Project</div>
+                  {topProject ? (
+                    <>
+                      <div style={{ fontSize:18, fontWeight:800, color:C.text, marginBottom:4 }}>{topProject[0]}</div>
+                      <div style={{ fontSize:13, color: isDark ? "#38bdf8" : "#0284c7", fontWeight:700, fontFamily:MONO }}>{+topProject[1].toFixed(1)}h logged</div>
+                      <div style={{ marginTop:12, height:6, borderRadius:3, background: isDark ? "rgba(56,189,248,0.15)" : "rgba(2,132,199,0.1)", overflow:"hidden" }}>
+                        <div style={{ height:"100%", borderRadius:3, background: isDark ? "#38bdf8" : "#0284c7", width:"100%", transition:"width 0.8s ease" }} />
+                      </div>
+                    </>
+                  ) : <div style={{ fontSize:13, color:C.textDim }}>No data yet</div>}
+                </div>
+                <div style={{ background:C.bgCard, backdropFilter:"blur(18px)", WebkitBackdropFilter:"blur(18px)", border:`1px solid ${C.border}`, borderRadius:14, padding:"20px", boxShadow:C.shadow }}>
+                  <div style={{ fontSize:11, fontWeight:700, color:C.textDim, letterSpacing:1, textTransform:"uppercase", marginBottom:12 }}>🗂 Top Category</div>
+                  {topCategory ? (
+                    <>
+                      <div style={{ fontSize:18, fontWeight:800, color:C.text, marginBottom:4 }}>{topCategory[0]}</div>
+                      <div style={{ fontSize:13, color: isDark ? "#a78bfa" : "#7c3aed", fontWeight:700, fontFamily:MONO }}>{+topCategory[1].toFixed(1)}h logged</div>
+                      <div style={{ marginTop:12, height:6, borderRadius:3, background: isDark ? "rgba(167,139,250,0.15)" : "rgba(124,58,237,0.1)", overflow:"hidden" }}>
+                        <div style={{ height:"100%", borderRadius:3, background: isDark ? "#a78bfa" : "#7c3aed", width:"100%", transition:"width 0.8s ease" }} />
+                      </div>
+                    </>
+                  ) : <div style={{ fontSize:13, color:C.textDim }}>No data yet</div>}
+                </div>
+              </div>
+
+              {/* Project hours breakdown */}
+              {Object.keys(projectHoursMap).length > 0 && (
+                <div style={{ background:C.bgCard, backdropFilter:"blur(18px)", WebkitBackdropFilter:"blur(18px)", border:`1px solid ${C.border}`, borderRadius:14, padding:"20px", boxShadow:C.shadow }}>
+                  <div style={{ fontSize:11, fontWeight:700, color:C.textDim, letterSpacing:1, textTransform:"uppercase", marginBottom:16 }}>⏱ Hours per Project</div>
+                  <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
+                    {Object.entries(projectHoursMap).sort((a,b) => b[1]-a[1]).map(([proj, hrs], i) => {
+                      const colors = isDark
+                        ? ["#FFF19E","#10b981","#38bdf8","#f59e0b","#a78bfa","#f472b6"]
+                        : ["#661414","#059669","#0284c7","#b45309","#7c3aed","#db2777"];
+                      const accent = colors[i % colors.length];
+                      const maxH = Math.max(...Object.values(projectHoursMap));
+                      const pct = Math.round((hrs / maxH) * 100);
+                      return (
+                        <div key={proj}>
+                          <div style={{ display:"flex", justifyContent:"space-between", marginBottom:5 }}>
+                            <span style={{ fontSize:12, fontWeight:600, color:C.text }}>{proj}</span>
+                            <span style={{ fontSize:12, fontWeight:800, color:accent, fontFamily:MONO }}>{+hrs.toFixed(1)}h</span>
+                          </div>
+                          <div style={{ height:7, borderRadius:4, background:accent+"22", overflow:"hidden" }}>
+                            <div style={{ height:"100%", borderRadius:4, background:accent, width:`${pct}%`, transition:"width 0.8s ease", boxShadow:`0 0 8px ${accent}55` }} />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
             </div>
           )}
         </main>

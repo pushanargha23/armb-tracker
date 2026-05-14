@@ -83,6 +83,7 @@ const headerToKey = (header) => {
     deadline: "deadline",
     type: "type",
     status: "status",
+    points: "points",
   };
   return keyMap[header] || header.replace(/\s+/g, "_");
 };
@@ -133,8 +134,8 @@ export const isValidDate = (dateStr) => {
  * Generate CSV template
  */
 export const generateCSVTemplate = () => {
-  const headers = ["Task Name", "Project Name", "Description", "Assigned User", "Deadline", "Type"];
-  const example = ["Fix login bug", "College Website", "Users can't login with Google", "john@example.com|jane@example.com", "2024-05-15", "Bug"];
+  const headers = ["Task Name", "Project Name", "Description", "Assigned User", "Deadline", "Type", "Points"];
+  const example = ["Fix login bug", "College Website", "Users can't login with Google", "john@example.com|jane@example.com", "2024-05-15", "Bug", "15"];
   return `${headers.join(",")}\n${example.join(",")}`;
 };
 

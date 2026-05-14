@@ -17,6 +17,7 @@ export default function EditTaskModal({ task, users, onClose }) {
   const [deadline, setDeadline] = useState(task.deadline || "");
   const [type, setType] = useState(task.type || "Task");
   const [category, setCategory] = useState(task.category || "Frontend");
+  const [points, setPoints] = useState(task.points || 10);
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
 
@@ -28,7 +29,7 @@ export default function EditTaskModal({ task, users, onClose }) {
     if (!deadline) return setError("Please set a deadline");
     setSaving(true);
     try {
-      await updateDoc(doc(db, "tasks", task.id), { title: title.trim(), description: desc.trim(), projectName: projectName.trim(), assignedTo, deadline, type, category });
+      await updateDoc(doc(db, "tasks", task.id), { title: title.trim(), description: desc.trim(), projectName: projectName.trim(), assignedTo, deadline, type, category, points: Number(points) || 10 });
       onClose();
     } catch (err) { setError(err.message); setSaving(false); }
   };
@@ -78,6 +79,9 @@ export default function EditTaskModal({ task, users, onClose }) {
 
           <label style={s.label}>Deadline *</label>
           <input style={s.input} type="date" value={deadline} onChange={e => setDeadline(e.target.value)} required />
+
+          <label style={s.label}>Task Points (awarded on completion)</label>
+          <input style={s.input} type="number" min={1} max={1000} value={points} onChange={e => setPoints(e.target.value)} placeholder="Default: 10" />
 
           <label style={s.label}>Assign To * {assignedTo.length > 0 && `(${assignedTo.length} selected)`}</label>
           <div style={{ ...s.input, height: "auto", padding: 8, display: "flex", flexDirection: "column", gap: 6, maxHeight: 160, overflowY: "auto" }}>

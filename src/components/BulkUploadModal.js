@@ -145,6 +145,7 @@ export default function BulkUploadModal({ users, onClose, onSuccess }) {
             projectName: task.projectName || "",
             type: task.type || "Task", assignedTo: uids,
             deadline: task.deadline, status: "In Progress",
+            points: Number(task.points) || 10,
             completed: false, createdAt: serverTimestamp(), createdBy: "bulk_upload",
           });
           successCount++;
@@ -213,7 +214,7 @@ export default function BulkUploadModal({ users, onClose, onSuccess }) {
               <table style={{ width: "100%", borderCollapse: "collapse" }}>
                 <thead>
                   <tr>
-                    {["Title", "Project", "User", "Deadline", "Type"].map(h => (
+                    {["Title", "Project", "User", "Deadline", "Type", "Pts"].map(h => (
                       <th key={h} style={s.th}>{h}</th>
                     ))}
                   </tr>
@@ -226,6 +227,7 @@ export default function BulkUploadModal({ users, onClose, onSuccess }) {
                       <td style={s.td}>{task.assignedUser}</td>
                       <td style={s.td}>{task.deadline}</td>
                       <td style={s.td}>{task.type || "Task"}</td>
+                      <td style={s.td}>{task.points || 10}</td>
                     </tr>
                   ))}
                 </tbody>

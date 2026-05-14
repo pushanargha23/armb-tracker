@@ -18,6 +18,7 @@ import OrganizedLogsList from "../components/OrganizedLogsList";
 import { format } from "date-fns";
 import { getTaskStatus, getStatusColor, getTypeColor, formatDeadline, isOverdue } from "../utils/taskUtils";
 import { getTodaySummary } from "../utils/timeTrackingUtils";
+import { useNavigate } from "react-router-dom";
 
 /* ─── Theme Palettes ─── */
 const DARK = {
@@ -127,6 +128,7 @@ function LiveTimer({ startTime, violet }) {
 
 export default function AdminDashboard() {
   const { isDark, toggle: toggleDark, customColors, updateColor, resetColors } = useTheme();
+  const navigate = useNavigate();
   const [users, setUsers] = useState([]);
   const [tasks, setTasks] = useState([]);
   const [timeLogs, setTimeLogs] = useState([]);
@@ -286,6 +288,9 @@ export default function AdminDashboard() {
             <button style={{ ...S.sidebarActionBtn, ...S.sidebarActionBtnAlt }} onClick={() => setShowBulkUpload(true)}>
               <span>📤</span> Bulk Upload
             </button>
+            <button style={{ ...S.sidebarActionBtn, ...S.sidebarActionBtnAlt }} onClick={() => navigate("/leaderboard")}>
+              <span>🏆</span> Leaderboard
+            </button>
           </div>
         </aside>
 
@@ -435,10 +440,13 @@ export default function AdminDashboard() {
                             {t.projectName && <span style={{ ...S.tag, background: C.greenDim, color: C.greenText, borderColor: C.greenBorder }}>📁 {t.projectName}</span>}
                           </div>
                           <p style={{ margin: "0 0 10px", fontSize: 12, color: C.textDim, lineHeight: 1.5 }}>{t.description || "No description provided"}</p>
-                          <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
+                          <div style={{ display: "flex", gap: 14, flexWrap: "wrap", alignItems: "center" }}>
                             <span style={{ fontSize: 11, color: C.text, fontWeight: 700 }}>👤 {Array.isArray(t.assignedTo) ? t.assignedTo.map(id => getUserName(id)).join(", ") : getUserName(t.assignedTo)}</span>
                             <span style={{ fontSize: 11, color: C.red, fontWeight: 600 }}>📅 {formatDeadline(t.deadline)}</span>
                             {t.createdAt && <span style={{ fontSize: 11, color: C.textDim, fontWeight: 500 }}>Created {format(t.createdAt.toDate?.() || new Date(), "MMM d")}</span>}
+                            <span style={{ display: "inline-flex", alignItems: "center", gap: 4, padding: "2px 8px", borderRadius: 20, fontSize: 11, fontWeight: 800, background: isDark ? "rgba(167,139,250,0.15)" : "rgba(124,58,237,0.1)", color: isDark ? "#a78bfa" : "#7c3aed", border: `1px solid ${isDark ? "rgba(167,139,250,0.3)" : "rgba(124,58,237,0.25)"}` }}>
+                              ⭐ {t.points || 10} pts
+                            </span>
                           </div>
                         </div>
                         <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>

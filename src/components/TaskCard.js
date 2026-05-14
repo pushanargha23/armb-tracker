@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import {
   collection, query, where, onSnapshot,
-  addDoc, updateDoc, doc, serverTimestamp,
+  addDoc, updateDoc, doc, serverTimestamp, increment,
 } from "firebase/firestore";
 import { db } from "../firebase/config";
 import { useLiveTimer } from "../hooks/useLiveTimer";
@@ -176,6 +176,12 @@ function TaskCard({ task, userId }) {
       await updateDoc(doc(db, "users", userId), { status: "idle" });
     }
     await updateDoc(doc(db, "tasks", task.id), { completed: true, status: "Completed" });
+    // Permanently store points — never decremented, uses task's custom points value
+    const taskPoints = task.points || 10;
+    await updateDoc(doc(db, "users", userId), {
+      lifetimeCompleted: increment(1),
+      lifetimePoints: increment(taskPoints),
+    });
   };
 
   const isRunning  = !!activeLog;
@@ -242,6 +248,22 @@ function TaskCard({ task, userId }) {
           <div style={{ fontSize: 10, color: T.textDim, fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 2 }}>Deadline</div>
           <div style={{ fontSize: 12, fontWeight: 700, color: isDelayed ? T.red : T.textDim }}>{formatDeadline(task.deadline)}</div>
           {isDelayed && <div style={{ fontSize: 10, color: T.red, fontWeight: 700, marginTop: 2 }}>⚠ Overdue</div>}
+        </div>
+
+        {/* Points */}
+        <div style={{ flexShrink: 0, minWidth: 70, textAlign: "center" }}>
+          <div style={{ fontSize: 10, color: T.textDim, fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 4 }}>Points</div>
+          <div style={{
+            display: "inline-flex", alignItems: "center", gap: 4,
+            padding: "4px 10px", borderRadius: 20,
+            background: isDark ? "rgba(167,139,250,0.15)" : "rgba(124,58,237,0.1)",
+            border: `1px solid ${isDark ? "rgba(167,139,250,0.3)" : "rgba(124,58,237,0.25)"}`,
+          }}>
+            <span style={{ fontSize: 11 }}>⭐</span>
+            <span style={{ fontSize: 13, fontWeight: 800, color: isDark ? "#a78bfa" : "#7c3aed", fontFamily: MONO }}>
+              {task.points || 10}
+            </span>
+          </div>
         </div>
 
         {/* Live timer */}

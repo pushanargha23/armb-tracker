@@ -110,6 +110,7 @@ export default function CreateTaskModal({ users, onClose }) {
   const [deadline, setDeadline] = useState("");
   const [type, setType] = useState("Task");
   const [category, setCategory] = useState("Frontend");
+  const [points, setPoints] = useState(10);
   const [error, setError] = useState("");
 
   const toggleUser = (uid) =>
@@ -128,10 +129,11 @@ export default function CreateTaskModal({ users, onClose }) {
         title: title.trim(), description: desc.trim(),
         projectName: projectName.trim(),
         assignedTo, deadline, type, category,
+        points: Number(points) || 10,
         status: "In Progress", completed: false,
         createdBy: userData.id, createdAt: serverTimestamp(),
       });
-      setTitle(""); setDesc(""); setAssignedTo([]); setDeadline(""); setProjectName("");
+      setTitle(""); setDesc(""); setAssignedTo([]); setDeadline(""); setProjectName(""); setPoints(10);
       setType("Task"); setCategory("Frontend");
       onClose();
     } catch (err) { setError(err.message); }
@@ -185,6 +187,9 @@ export default function CreateTaskModal({ users, onClose }) {
           <label style={s.label}>Deadline *</label>
           <input style={s.input} type="date" value={deadline} onChange={e => setDeadline(e.target.value)} min={format(new Date(), "yyyy-MM-dd")} required />
           <p style={s.hint}>Suggested: {defaultDeadline}</p>
+
+          <label style={s.label}>Task Points (awarded on completion)</label>
+          <input style={s.input} type="number" min={1} max={1000} value={points} onChange={e => setPoints(e.target.value)} placeholder="Default: 10" />
 
           <label style={s.label}>Assign To * {assignedTo.length > 0 && `(${assignedTo.length} selected)`}</label>
           <div style={{ ...s.input, height: "auto", padding: 8, display: "flex", flexDirection: "column", gap: 6, maxHeight: 160, overflowY: "auto" }}>
