@@ -136,6 +136,7 @@ export default function AdminDashboard() {
   const [typeFilter, setTypeFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
+  const [projectFilter, setProjectFilter] = useState("all");
   const [successMessage, setSuccessMessage] = useState("");
   const [editingTask, setEditingTask] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -183,9 +184,12 @@ export default function AdminDashboard() {
     setTimeout(() => setSuccessMessage(""), 4000);
   };
 
+  const projectNames = [...new Set(tasks.map(t => t.projectName).filter(Boolean))].sort();
+
   const filteredTasks = tasks.filter(task => {
     if (typeFilter !== "all" && task.type !== typeFilter) return false;
     if (categoryFilter !== "all" && task.category !== categoryFilter) return false;
+    if (projectFilter !== "all" && task.projectName !== projectFilter) return false;
     const status = getTaskStatus(task);
     if (statusFilter !== "all" && status !== statusFilter) return false;
     if (searchQuery.trim()) {
@@ -390,6 +394,7 @@ export default function AdminDashboard() {
                     {searchQuery && <button style={S.clearBtn} onClick={() => setSearchQuery("")}>✕</button>}
                   </div>
                   {[
+                    { val: projectFilter,  set: setProjectFilter,  opts: [["all","All Projects"], ...projectNames.map(p => [p, p])] },
                     { val: categoryFilter, set: setCategoryFilter, opts: [["all","All Categories"],["Frontend","Frontend"],["Backend","Backend"],["Database","Database"],["Deployment","Deployment"]] },
                     { val: typeFilter,     set: setTypeFilter,     opts: [["all","All Types"],["Task","Task"],["Bug","Bug"]] },
                     { val: statusFilter,   set: setStatusFilter,   opts: [["all","All Status"],["In Progress","In Progress"],["Delayed","Delayed"],["Completed","Completed"]] },
@@ -427,6 +432,7 @@ export default function AdminDashboard() {
                             <span style={{ ...S.tag, background: typeColor.bg + "22", color: typeColor.text, borderColor: typeColor.text + "44" }}>{typeColor.label}</span>
                             <span style={{ ...S.tag, background: statusColor.bg + "22", color: statusColor.text, borderColor: statusColor.text + "44", fontWeight: 800 }}>{statusColor.label}</span>
                             {t.category && <span style={{ ...S.tag, background: C.violetDim, color: C.violet, borderColor: C.violetBorder }}>{t.category}</span>}
+                            {t.projectName && <span style={{ ...S.tag, background: C.greenDim, color: C.greenText, borderColor: C.greenBorder }}>📁 {t.projectName}</span>}
                           </div>
                           <p style={{ margin: "0 0 10px", fontSize: 12, color: C.textDim, lineHeight: 1.5 }}>{t.description || "No description provided"}</p>
                           <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>

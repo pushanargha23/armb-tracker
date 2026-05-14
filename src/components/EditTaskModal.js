@@ -7,6 +7,7 @@ const SF = "-apple-system, 'SF Pro Display', 'SF Pro Text', BlinkMacSystemFont, 
 export default function EditTaskModal({ task, users, onClose }) {
   const [title, setTitle] = useState(task.title);
   const [desc, setDesc] = useState(task.description || "");
+  const [projectName, setProjectName] = useState(task.projectName || "");
   const [assignedTo, setAssignedTo] = useState(
     Array.isArray(task.assignedTo) ? task.assignedTo : task.assignedTo ? [task.assignedTo] : []
   );
@@ -22,11 +23,12 @@ export default function EditTaskModal({ task, users, onClose }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!title.trim()) return setError("Task title is required");
+    if (!projectName.trim()) return setError("Project name is required");
     if (!assignedTo.length) return setError("Please assign the task to at least one user");
     if (!deadline) return setError("Please set a deadline");
     setSaving(true);
     try {
-      await updateDoc(doc(db, "tasks", task.id), { title: title.trim(), description: desc.trim(), assignedTo, deadline, type, category });
+      await updateDoc(doc(db, "tasks", task.id), { title: title.trim(), description: desc.trim(), projectName: projectName.trim(), assignedTo, deadline, type, category });
       onClose();
     } catch (err) { setError(err.message); setSaving(false); }
   };
@@ -48,6 +50,9 @@ export default function EditTaskModal({ task, users, onClose }) {
         <form onSubmit={handleSubmit}>
           <label style={s.label}>Task Title *</label>
           <input style={s.input} value={title} onChange={e => setTitle(e.target.value)} required />
+
+          <label style={s.label}>Project Name *</label>
+          <input style={s.input} value={projectName} onChange={e => setProjectName(e.target.value)} placeholder="e.g. College Website, Mobile App" required />
 
           <label style={s.label}>Description</label>
           <textarea style={{ ...s.input, height: 80, resize: "vertical" }} value={desc} onChange={e => setDesc(e.target.value)} />

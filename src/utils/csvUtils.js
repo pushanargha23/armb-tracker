@@ -76,6 +76,8 @@ const headerToKey = (header) => {
     "task name": "title",
     "task title": "title",
     description: "description",
+    "project name": "projectName",
+    "project": "projectName",
     "assigned user": "assignedUser",
     "assigned to": "assignedUser",
     deadline: "deadline",
@@ -93,6 +95,10 @@ const validateTaskRow = (task, rowNumber) => {
 
   if (!task.title) {
     errors.push("Task name is required");
+  }
+
+  if (!task.projectName) {
+    errors.push("Project name is required");
   }
 
   if (!task.assignedUser) {
@@ -127,8 +133,8 @@ export const isValidDate = (dateStr) => {
  * Generate CSV template
  */
 export const generateCSVTemplate = () => {
-  const headers = ["Task Name", "Description", "Assigned User", "Deadline", "Type"];
-  const example = ["Fix login bug", "Users can't login with Google", "john@example.com|jane@example.com", "2024-05-15", "Bug"];
+  const headers = ["Task Name", "Project Name", "Description", "Assigned User", "Deadline", "Type"];
+  const example = ["Fix login bug", "College Website", "Users can't login with Google", "john@example.com|jane@example.com", "2024-05-15", "Bug"];
   return `${headers.join(",")}\n${example.join(",")}`;
 };
 

@@ -105,6 +105,7 @@ export default function CreateTaskModal({ users, onClose }) {
 
   const [title, setTitle] = useState("");
   const [desc, setDesc] = useState("");
+  const [projectName, setProjectName] = useState("");
   const [assignedTo, setAssignedTo] = useState([]);
   const [deadline, setDeadline] = useState("");
   const [type, setType] = useState("Task");
@@ -118,17 +119,19 @@ export default function CreateTaskModal({ users, onClose }) {
     e.preventDefault();
     setError("");
     if (!title.trim())       { setError("Task title is required"); return; }
+    if (!projectName.trim()) { setError("Project name is required"); return; }
     if (!assignedTo.length)  { setError("Please assign the task to at least one user"); return; }
     if (!deadline)           { setError("Please set a deadline"); return; }
     if (isNaN(new Date(deadline).getTime())) { setError("Invalid deadline date"); return; }
     try {
       await addDoc(collection(db, "tasks"), {
         title: title.trim(), description: desc.trim(),
+        projectName: projectName.trim(),
         assignedTo, deadline, type, category,
         status: "In Progress", completed: false,
         createdBy: userData.id, createdAt: serverTimestamp(),
       });
-      setTitle(""); setDesc(""); setAssignedTo([]); setDeadline("");
+      setTitle(""); setDesc(""); setAssignedTo([]); setDeadline(""); setProjectName("");
       setType("Task"); setCategory("Frontend");
       onClose();
     } catch (err) { setError(err.message); }
@@ -153,6 +156,9 @@ export default function CreateTaskModal({ users, onClose }) {
         <form onSubmit={handleSubmit}>
           <label style={s.label}>Task Title *</label>
           <input style={s.input} value={title} onChange={e => setTitle(e.target.value)} placeholder="Enter task title" required />
+
+          <label style={s.label}>Project Name *</label>
+          <input style={s.input} value={projectName} onChange={e => setProjectName(e.target.value)} placeholder="e.g. College Website, Mobile App" required />
 
           <label style={s.label}>Description</label>
           <textarea style={{ ...s.input, height: 80, resize: "vertical" }} value={desc} onChange={e => setDesc(e.target.value)} placeholder="Optional description" />

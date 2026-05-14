@@ -214,6 +214,7 @@ function TaskCard({ task, userId }) {
         <div style={{ flex: 2, minWidth: 0 }}>
           <div style={{ display: "flex", alignItems: "flex-start", gap: 8, flexWrap: "wrap", marginBottom: 4 }}>
             <span style={{ fontSize: 14, fontWeight: 700, color: isDelayed ? T.red : T.text, wordBreak: "break-word", lineHeight: 1.4 }}>{task.title}</span>
+            {task.projectName && <span style={{ padding: "2px 7px", borderRadius: 5, fontSize: 10, fontWeight: 700, background: T.accentDim, color: T.accent, whiteSpace: "nowrap", flexShrink: 0 }}>📁 {task.projectName}</span>}
             <span style={{ padding: "2px 7px", borderRadius: 5, fontSize: 10, fontWeight: 700, background: typeColor.bg, color: typeColor.text, whiteSpace: "nowrap", flexShrink: 0 }}>{typeColor.label}</span>
             {task.category && <span style={{ padding: "2px 7px", borderRadius: 5, fontSize: 10, fontWeight: 700, background: T.accentDim, color: T.accent, whiteSpace: "nowrap", flexShrink: 0 }}>{task.category}</span>}
             <span style={{ padding: "2px 7px", borderRadius: 5, fontSize: 10, fontWeight: 800, background: statusColor.bg, color: statusColor.text, whiteSpace: "nowrap", flexShrink: 0 }}>{statusColor.label}</span>

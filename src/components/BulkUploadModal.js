@@ -142,6 +142,7 @@ export default function BulkUploadModal({ users, onClose, onSuccess }) {
           if (hasError) { failureCount++; continue; }
           await addDoc(collection(db, "tasks"), {
             title: task.title, description: task.description || "",
+            projectName: task.projectName || "",
             type: task.type || "Task", assignedTo: uids,
             deadline: task.deadline, status: "In Progress",
             completed: false, createdAt: serverTimestamp(), createdBy: "bulk_upload",
@@ -187,6 +188,7 @@ export default function BulkUploadModal({ users, onClose, onSuccess }) {
               <p style={s.helpText}>Your CSV must include these columns:</p>
               <ul style={s.helpList}>
                 <li>Task Name (required)</li>
+                <li>Project Name (required)</li>
                 <li>Assigned User — single or multiple emails separated by <strong>|</strong> e.g. <em>a@x.com|b@x.com</em> (required)</li>
                 <li>Deadline (YYYY-MM-DD, required)</li>
                 <li>Description (optional)</li>
@@ -211,7 +213,7 @@ export default function BulkUploadModal({ users, onClose, onSuccess }) {
               <table style={{ width: "100%", borderCollapse: "collapse" }}>
                 <thead>
                   <tr>
-                    {["Title", "User", "Deadline", "Type"].map(h => (
+                    {["Title", "Project", "User", "Deadline", "Type"].map(h => (
                       <th key={h} style={s.th}>{h}</th>
                     ))}
                   </tr>
@@ -220,6 +222,7 @@ export default function BulkUploadModal({ users, onClose, onSuccess }) {
                   {preview.map((task, idx) => (
                     <tr key={idx} style={{ background: task._error ? s.errRowBg : "transparent" }}>
                       <td style={s.td}>{task._error ? "❌" : "✓"} {task.title}</td>
+                      <td style={s.td}>{task.projectName || "—"}</td>
                       <td style={s.td}>{task.assignedUser}</td>
                       <td style={s.td}>{task.deadline}</td>
                       <td style={s.td}>{task.type || "Task"}</td>
