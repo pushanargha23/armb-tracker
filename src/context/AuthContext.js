@@ -25,11 +25,24 @@ export function AuthProvider({ children }) {
             email: firebaseUser.email,
             role: "user",
             status: "idle",
+            blocked: true,
           };
           await setDoc(ref, newUser);
-          setUserData(newUser);
+          await signOut(auth);
+          setUser(null);
+          setUserData({ blocked: true });
+          setLoading(false);
+          return;
         } else {
-          setUserData(snap.data());
+          const data = snap.data();
+          if (data.blocked) {
+            await signOut(auth);
+            setUser(null);
+            setUserData({ blocked: true });
+            setLoading(false);
+            return;
+          }
+          setUserData(data);
         }
         setUser(firebaseUser);
       } else {

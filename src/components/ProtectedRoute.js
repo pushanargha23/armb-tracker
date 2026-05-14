@@ -3,6 +3,7 @@ import { useAuth } from "../context/AuthContext";
 
 export default function ProtectedRoute({ children, role }) {
   const { user, userData } = useAuth();
+  if (userData?.blocked) return <Navigate to="/login" state={{ blocked: true }} replace />;
   if (!user) return <Navigate to="/login" replace />;
   if (role && userData?.role !== role) {
     return <Navigate to={userData?.role === "admin" ? "/admin" : "/dashboard"} replace />;

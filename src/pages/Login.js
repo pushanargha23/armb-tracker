@@ -1,6 +1,6 @@
 import { signInWithPopup, signInWithRedirect } from "firebase/auth";
 import { auth, googleProvider } from "../firebase/config";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useEffect, useState } from "react";
 
@@ -17,10 +17,12 @@ function Blobs() {
 export default function Login() {
   const { user, userData } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    if (userData?.blocked) { setError("__blocked__"); return; }
     if (user && userData) navigate(userData.role === "admin" ? "/admin" : "/dashboard");
   }, [user, userData, navigate]);
 
@@ -84,9 +86,17 @@ export default function Login() {
           )}
         </button>
 
-        {error && (
+        {error === "__blocked__" ? (
+          <div style={{ ...S.errorBanner, background: "rgba(102,20,20,0.5)", border: "1px solid rgba(239,68,68,0.5)", flexDirection: "column", alignItems: "flex-start", gap: 6 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <span style={{ fontSize: 16 }}>🚫</span>
+              <span style={{ fontWeight: 800, fontSize: 13, color: "#fca5a5" }}>Account Blocked</span>
+            </div>
+            <span style={{ fontSize: 12, color: "rgba(252,165,165,0.8)", lineHeight: 1.5 }}>Your account has been blocked by an administrator. Please contact your admin to regain access.</span>
+          </div>
+        ) : error ? (
           <div style={S.errorBanner}><span style={{ fontSize:13 }}>⚠</span>{error}</div>
-        )}
+        ) : null}
 
         <div style={S.featRow}>
           {[{ icon:"⚡", label:"Real-time" }, { icon:"📊", label:"Analytics" }, { icon:"🔒", label:"Secure" }].map(({ icon, label }) => (

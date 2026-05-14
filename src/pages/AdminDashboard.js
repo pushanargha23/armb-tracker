@@ -179,6 +179,9 @@ export default function AdminDashboard() {
     await deleteDoc(doc(db, "users", userId));
     setDeleteConfirm(null);
   };
+  const handleToggleBlock = async (u) => {
+    await updateDoc(doc(db, "users", u.id), { blocked: !u.blocked });
+  };
   const handleDeleteTask = async (taskId) => {
     await deleteDoc(doc(db, "tasks", taskId));
     setDeleteTaskConfirm(null);
@@ -533,6 +536,9 @@ export default function AdminDashboard() {
                         <span style={{ ...S.roleBadge, ...(u.role === "admin" ? S.roleBadgeAdmin : S.roleBadgeUser) }}>
                           {u.role === "admin" ? "Admin" : "User"}
                         </span>
+                        {u.blocked && (
+                          <span style={{ padding:"4px 10px", borderRadius:20, fontSize:10, fontWeight:800, letterSpacing:0.8, textTransform:"uppercase", border:"1px solid", background:"rgba(239,68,68,0.12)", color:"#f87171", borderColor:"rgba(239,68,68,0.3)" }}>Blocked</span>
+                        )}
                       </div>
 
                       <div style={{ display: "flex", alignItems: "center", background: C.bgUserStats, border: `1px solid ${C.border}`, borderRadius: 10, padding: "12px 0" }}>
@@ -560,6 +566,14 @@ export default function AdminDashboard() {
 
                       <div style={{ display: "flex", gap: 8 }}>
                         <button className="action-btn" style={S.editUserBtn} onClick={() => setEditingUser(u)}>✏ Edit</button>
+                        {u.role !== "admin" && (
+                          <button className="action-btn"
+                            style={u.blocked ? S.unblockUserBtn : S.blockUserBtn}
+                            onClick={() => handleToggleBlock(u)}
+                          >
+                            {u.blocked ? "✓ Unblock" : "⊘ Block"}
+                          </button>
+                        )}
                         <button className="action-btn" style={S.deleteUserBtn} onClick={() => setDeleteConfirm(u)}>⊠ Delete</button>
                       </div>
                     </div>
@@ -976,6 +990,22 @@ function makeStyles(C) {
       border: isDark ? "1px solid rgba(239,68,68,0.25)" : "1px solid rgba(102,20,20,0.2)",
       borderRadius: 8,
       color: isDark ? "#f87171" : "#661414",
+      fontWeight: 700, fontSize: 12, cursor: "pointer",
+      fontFamily: SF, transition: "all 0.2s",
+    },
+    blockUserBtn: {
+      flex: 1, padding: "9px 0",
+      background: "rgba(239,68,68,0.1)",
+      border: "1px solid rgba(239,68,68,0.3)",
+      borderRadius: 8, color: "#f87171",
+      fontWeight: 700, fontSize: 12, cursor: "pointer",
+      fontFamily: SF, transition: "all 0.2s",
+    },
+    unblockUserBtn: {
+      flex: 1, padding: "9px 0",
+      background: C.greenDim,
+      border: `1px solid ${C.greenBorder}`,
+      borderRadius: 8, color: C.greenText,
       fontWeight: 700, fontSize: 12, cursor: "pointer",
       fontFamily: SF, transition: "all 0.2s",
     },
