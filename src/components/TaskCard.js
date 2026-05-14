@@ -88,6 +88,21 @@ function palette(isDark, custom = {}) {
   };
 }
 
+function DescriptionModal({ title, description, onClose, T }) {
+  return (
+    <div style={{ position: "fixed", inset: 0, zIndex: 1000, background: T.overlayBg, backdropFilter: "blur(6px)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <div style={{ background: T.modalBg, backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)", border: `1px solid ${T.modalBorder}`, borderRadius: 20, padding: "28px 28px 24px", width: 480, maxWidth: "90%", maxHeight: "80vh", overflowY: "auto", boxShadow: T.modalShadow, fontFamily: SF }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
+          <h3 style={{ fontSize: 16, fontWeight: 800, color: T.text, margin: 0, flex: 1, lineHeight: 1.4 }}>{title}</h3>
+          <button onClick={onClose} style={{ background: T.cancelBg, border: `1px solid ${T.cancelBorder}`, borderRadius: 8, color: T.cancelColor, fontSize: 13, fontWeight: 700, padding: "5px 10px", cursor: "pointer", marginLeft: 12, flexShrink: 0, fontFamily: SF }}>✕</button>
+        </div>
+        <div style={{ height: 1, background: T.modalBorder, marginBottom: 16 }} />
+        <p style={{ fontSize: 14, color: T.text, lineHeight: 1.7, margin: 0, whiteSpace: "pre-wrap", wordBreak: "break-word" }}>{description}</p>
+      </div>
+    </div>
+  );
+}
+
 function ConfirmModal({ taskTitle, onConfirm, onCancel, T }) {
   return (
     <div style={{ position:"fixed", inset:0, zIndex:1000, background:T.overlayBg, backdropFilter:"blur(6px)", display:"flex", alignItems:"center", justifyContent:"center" }}>
@@ -111,7 +126,10 @@ function TaskCard({ task, userId }) {
   const T = palette(isDark, custom);
   const [activeLog, setActiveLog] = useState(null);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [showDesc, setShowDesc] = useState(false);
   const timer = useLiveTimer(activeLog?.startTime);
+
+  const DESC_LIMIT = 80;
 
   useEffect(() => {
     const q = query(
@@ -177,8 +195,11 @@ function TaskCard({ task, userId }) {
           onCancel={() => setShowConfirm(false)}
         />
       )}
+      {showDesc && (
+        <DescriptionModal T={T} title={task.title} description={task.description} onClose={() => setShowDesc(false)} />
+      )}
       <div style={{
-        display: "flex", alignItems: "center", gap: 16,
+        display: "flex", alignItems: "flex-start", gap: 16,
         background: isDelayed ? (isDark ? "rgba(239,68,68,0.06)" : "rgba(102,20,20,0.04)") : T.bgCard,
         border: isDelayed ? `1.5px solid ${T.red}44` : `1px solid ${T.border}`,
         borderLeft: `4px solid ${accentColor}`,
@@ -191,19 +212,28 @@ function TaskCard({ task, userId }) {
 
         {/* Title + badges + description */}
         <div style={{ flex: 2, minWidth: 0 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 4 }}>
-            <span style={{ fontSize: 14, fontWeight: 700, color: isDelayed ? T.red : T.text, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 260 }}>{task.title}</span>
-            <span style={{ padding: "2px 7px", borderRadius: 5, fontSize: 10, fontWeight: 700, background: typeColor.bg, color: typeColor.text, whiteSpace: "nowrap" }}>{typeColor.label}</span>
-            {task.category && <span style={{ padding: "2px 7px", borderRadius: 5, fontSize: 10, fontWeight: 700, background: T.accentDim, color: T.accent, whiteSpace: "nowrap" }}>{task.category}</span>}
-            <span style={{ padding: "2px 7px", borderRadius: 5, fontSize: 10, fontWeight: 800, background: statusColor.bg, color: statusColor.text, whiteSpace: "nowrap" }}>{statusColor.label}</span>
+          <div style={{ display: "flex", alignItems: "flex-start", gap: 8, flexWrap: "wrap", marginBottom: 4 }}>
+            <span style={{ fontSize: 14, fontWeight: 700, color: isDelayed ? T.red : T.text, wordBreak: "break-word", lineHeight: 1.4 }}>{task.title}</span>
+            <span style={{ padding: "2px 7px", borderRadius: 5, fontSize: 10, fontWeight: 700, background: typeColor.bg, color: typeColor.text, whiteSpace: "nowrap", flexShrink: 0 }}>{typeColor.label}</span>
+            {task.category && <span style={{ padding: "2px 7px", borderRadius: 5, fontSize: 10, fontWeight: 700, background: T.accentDim, color: T.accent, whiteSpace: "nowrap", flexShrink: 0 }}>{task.category}</span>}
+            <span style={{ padding: "2px 7px", borderRadius: 5, fontSize: 10, fontWeight: 800, background: statusColor.bg, color: statusColor.text, whiteSpace: "nowrap", flexShrink: 0 }}>{statusColor.label}</span>
             {isRunning && (
-              <span style={{ display: "flex", alignItems: "center", gap: 4, padding: "2px 8px", borderRadius: 5, fontSize: 10, fontWeight: 700, background: T.workingBg, color: T.workingColor }}>
+              <span style={{ display: "flex", alignItems: "center", gap: 4, padding: "2px 8px", borderRadius: 5, fontSize: 10, fontWeight: 700, background: T.workingBg, color: T.workingColor, flexShrink: 0 }}>
                 <span style={{ width: 6, height: 6, borderRadius: "50%", background: T.workingColor, animation: "pulseDot 1.2s ease-in-out infinite" }} />
                 In Progress
               </span>
             )}
           </div>
-          {task.description && <p style={{ fontSize: 12, color: T.textDim, margin: 0, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{task.description}</p>}
+          {task.description && (
+            <p style={{ fontSize: 12, color: T.textDim, margin: 0, lineHeight: 1.5, wordBreak: "break-word" }}>
+              {task.description.length > DESC_LIMIT ? (
+                <>
+                  {task.description.slice(0, DESC_LIMIT)}&hellip;{" "}
+                  <span onClick={() => setShowDesc(true)} style={{ color: T.accent, fontWeight: 700, cursor: "pointer", textDecoration: "underline", fontSize: 11 }}>View description</span>
+                </>
+              ) : task.description}
+            </p>
+          )}
         </div>
 
         {/* Deadline */}
