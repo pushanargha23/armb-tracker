@@ -121,7 +121,7 @@ function ConfirmModal({ taskTitle, onConfirm, onCancel, T }) {
   );
 }
 
-function TaskCard({ task, userId }) {
+function TaskCard({ task, userId, getUserName }) {
   const { isDark, C: custom } = useTheme();
   const T = palette(isDark, custom);
   const [activeLog, setActiveLog] = useState(null);
@@ -241,6 +241,26 @@ function TaskCard({ task, userId }) {
               ) : task.description}
             </p>
           )}
+          {task.assignedTo && Array.isArray(task.assignedTo) && task.assignedTo.length > 0 && getUserName && (
+            <div style={{ marginTop: 6, display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+              <span style={{ fontSize: 10, fontWeight: 700, color: T.textDim, textTransform: "uppercase", letterSpacing: 0.5 }}>Team:</span>
+              {task.assignedTo.map(id => {
+                const isMe = id === userId;
+                return (
+                  <span key={id} style={{
+                    display: "inline-flex", alignItems: "center", gap: 4,
+                    padding: "2px 8px", borderRadius: 20, fontSize: 11, fontWeight: 700,
+                    background: isDark ? "rgba(16,185,129,0.15)" : "rgba(5,150,105,0.1)",
+                    color: isDark ? "#6ee7b7" : "#065f46",
+                    border: `1px solid ${isDark ? "rgba(16,185,129,0.3)" : "rgba(5,150,105,0.25)"}`,
+                  }}>
+                    <span style={{ fontSize: 9 }}>{isMe ? "👤" : "👥"}</span>
+                    {getUserName(id)}{isMe ? " (you)" : ""}
+                  </span>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         {/* Deadline */}
@@ -314,11 +334,20 @@ export default function TaskCardList({ userId }) {
   const { isDark, C: custom } = useTheme();
   const T = palette(isDark, custom);
   const [tasks, setTasks] = useState([]);
+  const [users, setUsers] = useState([]);
 
   useEffect(() => {
     const q = query(collection(db, "tasks"), where("assignedTo", "array-contains", userId));
     return onSnapshot(q, snap => setTasks(snap.docs.map(d => ({ id: d.id, ...d.data() }))));
   }, [userId]);
+
+  useEffect(() => {
+    return onSnapshot(collection(db, "users"), snap =>
+      setUsers(snap.docs.map(d => ({ id: d.id, ...d.data() })))
+    );
+  }, []);
+
+  const getUserName = (id) => users.find(u => u.id === id)?.name || id;
 
   const sortedTasks = [...tasks].sort((a, b) => {
     if (a.completed !== b.completed) return a.completed ? 1 : -1;
@@ -334,7 +363,7 @@ export default function TaskCardList({ userId }) {
           <p style={{ fontSize: 13, color: T.textDim, fontFamily: SF }}>Your assigned tasks will appear here</p>
         </div>
       )}
-      {sortedTasks.map(t => <TaskCard key={t.id} task={t} userId={userId} />)}
+      {sortedTasks.map(t => <TaskCard key={t.id} task={t} userId={userId} getUserName={getUserName} />)}
     </div>
   );
 }

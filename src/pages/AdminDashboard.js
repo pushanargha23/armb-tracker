@@ -145,6 +145,7 @@ export default function AdminDashboard() {
   const [editingUser, setEditingUser] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [deleteTaskConfirm, setDeleteTaskConfirm] = useState(null);
+  const [userSearchQuery, setUserSearchQuery] = useState("");
 
   const C = buildPalette(isDark ? DARK : LIGHT, isDark ? customColors.dark : customColors.light);
 
@@ -518,8 +519,24 @@ export default function AdminDashboard() {
                 <span style={S.cardTitle}>Team Members</span>
                 <span style={S.cardBadge}>{users.filter(u => u.role !== "admin").length} members</span>
               </div>
+              <div style={{ marginBottom: 16, position: "relative", display: "flex", alignItems: "center" }}>
+                <span style={{ position: "absolute", left: 10, fontSize: 16, color: C.textDim, pointerEvents: "none" }}>⌕</span>
+                <input
+                  style={{ ...S.searchInput, width: "100%", paddingLeft: 30 }}
+                  placeholder="Search by name or email…"
+                  value={userSearchQuery}
+                  onChange={e => setUserSearchQuery(e.target.value)}
+                />
+                {userSearchQuery && (
+                  <button style={{ ...S.clearBtn, position: "absolute", right: 8 }} onClick={() => setUserSearchQuery("")}>✕</button>
+                )}
+              </div>
               <div style={S.userGrid}>
-                {users.map(u => {
+                {users.filter(u => {
+                  if (!userSearchQuery.trim()) return true;
+                  const q = userSearchQuery.toLowerCase();
+                  return u.name?.toLowerCase().includes(q) || u.email?.toLowerCase().includes(q);
+                }).map(u => {
                   const userTasks = tasks.filter(t => Array.isArray(t.assignedTo) ? t.assignedTo.includes(u.id) : t.assignedTo === u.id);
                   const done = userTasks.filter(t => t.completed).length;
                   const isWorking = u.status === "working";
